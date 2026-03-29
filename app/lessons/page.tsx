@@ -23,9 +23,9 @@ import { updateLessonStatus } from "@/app/actions/practice"
 import type { Lesson } from "@/lib/types"
 
 const STATUS_COLOR: Record<string, string> = {
-  "未受講": "secondary",
-  try: "default",
-  Done: "outline",
+  "未登録": "secondary",
+  "練習中": "default",
+  "習得済み": "outline",
 }
 
 function LessonTable({
@@ -67,9 +67,9 @@ function LessonTable({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="未受講">未受講</SelectItem>
-                  <SelectItem value="try">try</SelectItem>
-                  <SelectItem value="Done">Done</SelectItem>
+                  <SelectItem value="未登録">未登録</SelectItem>
+                  <SelectItem value="練習中">練習中</SelectItem>
+                  <SelectItem value="習得済み">習得済み</SelectItem>
                 </SelectContent>
               </Select>
             </TableCell>
@@ -91,8 +91,18 @@ export default function LessonsPage() {
         .from("lessons")
         .select("*")
         .order("level")
-        .order("lesson_no")
-      setLessons((data as Lesson[]) ?? [])
+      const sorted = ((data as Lesson[]) ?? []).sort((a, b) => {
+        if (a.level !== b.level) return a.level - b.level
+        const parseParts = (no: string) => no.split("-").map(Number)
+        const ap = parseParts(a.lesson_no)
+        const bp = parseParts(b.lesson_no)
+        for (let i = 0; i < Math.max(ap.length, bp.length); i++) {
+          const diff = (ap[i] ?? 0) - (bp[i] ?? 0)
+          if (diff !== 0) return diff
+        }
+        return 0
+      })
+      setLessons(sorted)
       setLoading(false)
     }
     load()
@@ -108,9 +118,9 @@ export default function LessonsPage() {
 
   const statusSummary = (lvl: number) => {
     const items = byLevel(lvl)
-    const done = items.filter((l) => l.status === "Done").length
-    const trying = items.filter((l) => l.status === "try").length
-    return `${done} Done / ${trying} try / ${items.length} 件`
+    const done = items.filter((l) => l.status === "習得済み").length
+    const trying = items.filter((l) => l.status === "練習中").length
+    return `${done} 習得済み / ${trying} 練習中 / ${items.length} 件`
   }
 
   if (loading) {

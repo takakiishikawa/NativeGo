@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: "English Learning App",
+  title: "NativeGo",
   description: "Native Camp英語学習管理アプリ",
 }
 

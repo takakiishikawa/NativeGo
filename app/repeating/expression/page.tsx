@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState, useRef, useCallback } from "react"
+import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -8,7 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { Slider } from "@/components/ui/slider"
 import { incrementExpressionPlayCount } from "@/app/actions/practice"
 import type { Expression } from "@/lib/types"
-import { Play, Square, ChevronLeft, ChevronRight, Star } from "lucide-react"
+import { Play, Square, ChevronLeft, ChevronRight, Star, CheckCircle2 } from "lucide-react"
 
 function StarRating({ value }: { value: number }) {
   return (
@@ -24,6 +25,7 @@ function StarRating({ value }: { value: number }) {
 }
 
 export default function ExpressionRepeatingPage() {
+  const router = useRouter()
   const supabase = createClient()
   const [items, setItems] = useState<Expression[]>([])
   const [index, setIndex] = useState(0)
@@ -31,96 +33,155 @@ export default function ExpressionRepeatingPage() {
   const [currentLine, setCurrentLine] = useState(-1)
   const [rate, setRate] = useState(1.0)
   const [loading, setLoading] = useState(true)
+  const [completed, setCompleted] = useState(false)
   const cancelRef = useRef(false)
+  const audioRef = useRef<HTMLAudioElement | null>(null)
 
   useEffect(() => {
     async function load() {
       const { data } = await supabase
         .from("expressions")
         .select("*")
-        .lt("play_count", 7)
+        .lt("play_count", 10)
         .order("created_at", { ascending: true })
       setItems(data ?? [])
       setLoading(false)
     }
     load()
+    return () => {
+      cancelRef.current = true
+      audioRef.current?.pause()
+    }
   }, [])
-
-  const current = items[index]
-  const lines = current?.conversation.split("\n").filter(Boolean) ?? []
 
   const stopSpeech = useCallback(() => {
     cancelRef.current = true
-    window.speechSynthesis.cancel()
+    if (audioRef.current) {
+      audioRef.current.pause()
+      audioRef.current = null
+    }
     setPlaying(false)
     setCurrentLine(-1)
   }, [])
 
   const speakLine = useCallback(
-    (text: string, lineIndex: number): Promise<void> => {
-      return new Promise((resolve) => {
-        if (cancelRef.current) {
-          resolve()
-          return
-        }
-        setCurrentLine(lineIndex)
-        const utter = new SpeechSynthesisUtterance(text)
-        utter.lang = "en-US"
-        utter.rate = rate
-        utter.onend = () => resolve()
-        utter.onerror = () => resolve()
-        window.speechSynthesis.speak(utter)
-      })
+    async (text: string, lineIndex: number, speakRate: number): Promise<void> => {
+      if (cancelRef.current) return
+      setCurrentLine(lineIndex)
+      try {
+        const response = await fetch("/api/tts", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text, rate: speakRate }),
+        })
+        if (!response.ok || cancelRef.current) return
+        const { audioContent } = await response.json()
+        await new Promise<void>((resolve) => {
+          if (cancelRef.current) { resolve(); return }
+          const audio = new Audio(`data:audio/mp3;base64,${audioContent}`)
+          audioRef.current = audio
+          audio.onended = () => resolve()
+          audio.onerror = () => resolve()
+          audio.play().catch(() => resolve())
+        })
+      } catch {
+        // continue on error
+      }
     },
-    [rate]
+    []
   )
 
-  const pause = (ms: number) =>
-    new Promise<void>((r) => setTimeout(r, ms))
+  const pause = (ms: number) => new Promise<void>((r) => setTimeout(r, ms))
 
   const handlePlay = useCallback(async () => {
-    if (!current || lines.length === 0) return
+    if (items.length === 0) return
     cancelRef.current = false
     setPlaying(true)
 
-    for (let i = 0; i < lines.length; i++) {
-      if (cancelRef.current) break
-      await speakLine(lines[i], i)
-      if (!cancelRef.current) {
-        await pause(200)
+    let localItems = [...items]
+    let localIndex = index
+    const playRate = rate
+
+    while (localItems.length > 0 && !cancelRef.current) {
+      const item = localItems[localIndex]
+      const lines = item.conversation.split("\n").filter(Boolean)
+
+      for (let i = 0; i < lines.length; i++) {
+        if (cancelRef.current) break
+        const ttsText = lines[i].replace(/^[AB]:\s*/i, "")
+        await speakLine(ttsText, i, playRate)
+        if (!cancelRef.current) {
+          await pause(100)
+        }
       }
+
+      if (cancelRef.current) break
+
+      setCurrentLine(-1)
+      await incrementExpressionPlayCount(item.id)
+      const updatedCount = item.play_count + 1
+
+      if (updatedCount >= 10) {
+        localItems = localItems.filter((_, idx) => idx !== localIndex)
+        if (localItems.length === 0) {
+          setItems([])
+          setIndex(0)
+          setPlaying(false)
+          setCompleted(true)
+          return
+        }
+        localIndex = Math.min(localIndex, localItems.length - 1)
+      } else {
+        localItems = localItems.map((it, idx) =>
+          idx === localIndex ? { ...it, play_count: updatedCount } : it
+        )
+        localIndex = (localIndex + 1) % localItems.length
+      }
+
+      setItems([...localItems])
+      setIndex(localIndex)
+      await pause(400)
     }
 
     if (!cancelRef.current) {
       setPlaying(false)
       setCurrentLine(-1)
-      await incrementExpressionPlayCount(current.id)
-      const updatedCount = current.play_count + 1
-      setItems((prev) =>
-        updatedCount >= 7
-          ? prev.filter((_, idx) => idx !== index)
-          : prev.map((item, idx) =>
-              idx === index ? { ...item, play_count: updatedCount } : item
-            )
-      )
-      if (updatedCount >= 7) {
-        setIndex((prev) => Math.max(0, prev - 1))
-      }
     }
-  }, [current, lines, speakLine, index])
+  }, [items, index, rate, speakLine])
 
   if (loading) {
-    return <div className="flex items-center justify-center h-64 text-muted-foreground">読み込み中...</div>
+    return (
+      <div className="flex items-center justify-center h-64 text-muted-foreground">
+        読み込み中...
+      </div>
+    )
+  }
+
+  if (completed) {
+    return (
+      <div className="flex flex-col items-center justify-center h-96 gap-6">
+        <div className="rounded-full bg-green-100 p-6">
+          <CheckCircle2 className="h-16 w-16 text-green-600" />
+        </div>
+        <div className="text-center space-y-2">
+          <h2 className="text-2xl font-bold">完了しました！</h2>
+          <p className="text-muted-foreground">お疲れ様でした！表現リピーティングを終えました。</p>
+        </div>
+      </div>
+    )
   }
 
   if (items.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-64 gap-4 text-muted-foreground">
-        <p className="text-lg">Try中の表現はありません</p>
+        <p className="text-lg">練習中の表現はありません</p>
         <p className="text-sm">すべて完了しました！</p>
       </div>
     )
   }
+
+  const current = items[index]
+  const lines = current?.conversation.split("\n").filter(Boolean) ?? []
 
   return (
     <div className="space-y-6 max-w-2xl">
@@ -131,9 +192,19 @@ export default function ExpressionRepeatingPage() {
             {index + 1} / {items.length} 件
           </p>
         </div>
-        <Badge variant="secondary" className="text-lg px-3 py-1">
-          {current.play_count} / 7 回
-        </Badge>
+        <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-muted-foreground text-xs"
+            onClick={() => { stopSpeech(); router.push("/practice") }}
+          >
+            途中終了
+          </Button>
+          <Badge variant="secondary" className="text-lg px-3 py-1">
+            {current.play_count} / 10 回
+          </Badge>
+        </div>
       </div>
 
       <Card>
@@ -145,17 +216,17 @@ export default function ExpressionRepeatingPage() {
             </div>
             <StarRating value={current.frequency} />
           </div>
-          <p className="text-muted-foreground">{current.meaning}</p>
+          <p className="text-muted-foreground whitespace-pre-line">{current.meaning}</p>
         </CardHeader>
         <CardContent>
           <p className="text-sm font-medium mb-3">会話例:</p>
           <div className="space-y-2">
             {lines.map((line, i) => {
-              const isA = i % 2 === 0
+              const isA = line.startsWith("A:")
               return (
                 <div
                   key={i}
-                  className={`rounded-md px-3 py-2 text-sm transition-colors ${
+                  className={`rounded-lg px-3 py-2 text-sm transition-colors ${
                     i === currentLine
                       ? isA
                         ? "bg-blue-600 text-white"
@@ -165,7 +236,6 @@ export default function ExpressionRepeatingPage() {
                       : "bg-amber-50 text-amber-800"
                   }`}
                 >
-                  <span className="font-bold mr-2">{isA ? "A:" : "B:"}</span>
                   {line}
                 </div>
               )
@@ -195,7 +265,7 @@ export default function ExpressionRepeatingPage() {
           variant="outline"
           size="icon"
           onClick={() => { stopSpeech(); setIndex((i) => Math.max(0, i - 1)) }}
-          disabled={index === 0}
+          disabled={index === 0 || playing}
         >
           <ChevronLeft className="h-4 w-4" />
         </Button>
@@ -216,7 +286,7 @@ export default function ExpressionRepeatingPage() {
           variant="outline"
           size="icon"
           onClick={() => { stopSpeech(); setIndex((i) => Math.min(items.length - 1, i + 1)) }}
-          disabled={index === items.length - 1}
+          disabled={index === items.length - 1 || playing}
         >
           <ChevronRight className="h-4 w-4" />
         </Button>

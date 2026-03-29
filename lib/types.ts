@@ -9,6 +9,7 @@ export interface Grammar {
   play_count: number
   last_played_at: string | null
   created_at: string
+  lesson_id: string | null
 }
 
 export interface Expression {
@@ -22,6 +23,7 @@ export interface Expression {
   play_count: number
   last_played_at: string | null
   created_at: string
+  lesson_id: string | null
 }
 
 export interface Lesson {
@@ -29,13 +31,15 @@ export interface Lesson {
   level: number
   lesson_no: string
   topic: string
-  status: "未受講" | "try" | "Done"
+  status: "未登録" | "練習中" | "習得済み"
 }
 
 export interface PracticeLog {
   id: string
   practiced_at: string
   created_at: string
+  grammar_done_count: number
+  expression_done_count: number
 }
 
 export interface ExtractedGrammar {

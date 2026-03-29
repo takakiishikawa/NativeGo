@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { Badge } from "@/components/ui/badge"
+import { Dialog } from "@/components/ui/dialog"
 import {
   Table,
   TableBody,
@@ -40,6 +41,7 @@ export default function GrammarPage() {
   const [loading, setLoading] = useState(true)
   const [statusFilter, setStatusFilter] = useState<"all" | "try" | "done">("all")
   const [freqFilter, setFreqFilter] = useState<"all" | "3" | "4" | "5">("all")
+  const [selected, setSelected] = useState<Grammar | null>(null)
 
   useEffect(() => {
     async function load() {
@@ -54,7 +56,7 @@ export default function GrammarPage() {
   }, [])
 
   const filtered = items.filter((item) => {
-    const isDone = item.play_count >= 7
+    const isDone = item.play_count >= 10
     if (statusFilter === "try" && isDone) return false
     if (statusFilter === "done" && !isDone) return false
     if (freqFilter !== "all" && item.frequency < parseInt(freqFilter)) return false
@@ -79,8 +81,8 @@ export default function GrammarPage() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">すべて</SelectItem>
-            <SelectItem value="try">try中</SelectItem>
-            <SelectItem value="done">Done</SelectItem>
+            <SelectItem value="try">練習中</SelectItem>
+            <SelectItem value="done">習得済み</SelectItem>
           </SelectContent>
         </Select>
 
@@ -113,7 +115,11 @@ export default function GrammarPage() {
         </TableHeader>
         <TableBody>
           {filtered.map((item) => (
-            <TableRow key={item.id}>
+            <TableRow
+              key={item.id}
+              className="cursor-pointer hover:bg-muted/50"
+              onClick={() => setSelected(item)}
+            >
               <TableCell className="font-medium">{item.name}</TableCell>
               <TableCell className="text-muted-foreground text-sm max-w-xs truncate">
                 {item.summary}
@@ -121,18 +127,60 @@ export default function GrammarPage() {
               <TableCell>
                 <StarRating value={item.frequency} />
               </TableCell>
-              <TableCell className="text-sm">{item.play_count} / 7</TableCell>
+              <TableCell className="text-sm">{item.play_count} / 10</TableCell>
               <TableCell>
-                {item.play_count >= 7 ? (
-                  <Badge variant="outline" className="text-green-600 border-green-300">Done</Badge>
+                {item.play_count >= 10 ? (
+                  <Badge variant="outline" className="text-green-600 border-green-300">習得済み</Badge>
                 ) : (
-                  <Badge>try</Badge>
+                  <Badge>練習中</Badge>
                 )}
               </TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
+
+      {selected && (
+        <Dialog open={!!selected} onClose={() => setSelected(null)} title={selected.name}>
+          <div className="space-y-4">
+            <div>
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">概要</p>
+              <p className="text-sm whitespace-pre-line">{selected.summary}</p>
+            </div>
+            {selected.detail && (
+              <div>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">詳細解説</p>
+                <p className="text-sm leading-relaxed whitespace-pre-wrap">{selected.detail}</p>
+              </div>
+            )}
+            <div>
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">例文</p>
+              <ul className="space-y-2">
+                {selected.examples.split("\n").filter(Boolean).map((ex, i) => (
+                  <li key={i} className="rounded-lg bg-muted px-3 py-2 text-sm">{ex}</li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">使用場面</p>
+              <p className="text-sm text-muted-foreground whitespace-pre-line">{selected.usage_scene}</p>
+            </div>
+            <div className="flex items-center gap-4 pt-2 border-t">
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground">頻度</span>
+                <StarRating value={selected.frequency} />
+              </div>
+              <span className="text-xs text-muted-foreground">練習回数: {selected.play_count} / 10</span>
+              <Badge
+                variant={selected.play_count >= 10 ? "outline" : "default"}
+                className={selected.play_count >= 10 ? "text-green-600 border-green-300" : ""}
+              >
+                {selected.play_count >= 10 ? "習得済み" : "練習中"}
+              </Badge>
+            </div>
+          </div>
+        </Dialog>
+      )}
     </div>
   )
 }

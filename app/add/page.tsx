@@ -79,12 +79,11 @@ function ExpressionPreview({ item }: { item: ExtractedExpression }) {
               <p
                 key={i}
                 className={`pl-2 ${
-                  i % 2 === 0
+                  line.startsWith("A:")
                     ? "text-blue-700 border-l-2 border-blue-300"
                     : "text-amber-700 border-l-2 border-amber-300"
                 }`}
               >
-                <span className="font-medium">{i % 2 === 0 ? "A:" : "B:"}</span>{" "}
                 {line}
               </p>
             ))}

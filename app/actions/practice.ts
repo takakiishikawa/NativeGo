@@ -55,9 +55,25 @@ export async function upsertPracticeLog() {
   const supabase = await createClient()
   const today = new Date().toISOString().split("T")[0]
 
-  await supabase
-    .from("practice_logs")
-    .upsert({ practiced_at: today }, { onConflict: "practiced_at" })
+  const [grammarResult, expressionResult] = await Promise.all([
+    supabase
+      .from("grammar")
+      .select("id", { count: "exact", head: true })
+      .gte("play_count", 10),
+    supabase
+      .from("expressions")
+      .select("id", { count: "exact", head: true })
+      .gte("play_count", 10),
+  ])
+
+  await supabase.from("practice_logs").upsert(
+    {
+      practiced_at: today,
+      grammar_done_count: grammarResult.count ?? 0,
+      expression_done_count: expressionResult.count ?? 0,
+    },
+    { onConflict: "practiced_at" }
+  )
 }
 
 export async function saveGrammar(
@@ -68,7 +84,8 @@ export async function saveGrammar(
     examples: string[]
     usage_scene: string
     frequency: number
-  }[]
+  }[],
+  lessonId?: string
 ) {
   const supabase = await createClient()
 
@@ -80,11 +97,14 @@ export async function saveGrammar(
     usage_scene: g.usage_scene,
     frequency: g.frequency,
     play_count: 0,
+    lesson_id: lessonId ?? null,
   }))
 
   const { error } = await supabase.from("grammar").insert(rows)
   if (error) throw error
   revalidatePath("/grammar")
+  revalidatePath("/list")
+  revalidatePath("/texts")
 }
 
 export async function saveExpressions(
@@ -95,7 +115,8 @@ export async function saveExpressions(
     conversation: string[]
     usage_scene: string
     frequency: number
-  }[]
+  }[],
+  lessonId?: string
 ) {
   const supabase = await createClient()
 
@@ -107,18 +128,22 @@ export async function saveExpressions(
     usage_scene: e.usage_scene,
     frequency: e.frequency,
     play_count: 0,
+    lesson_id: lessonId ?? null,
   }))
 
   const { error } = await supabase.from("expressions").insert(rows)
   if (error) throw error
   revalidatePath("/expressions")
+  revalidatePath("/list")
+  revalidatePath("/texts")
 }
 
 export async function updateLessonStatus(
   id: string,
-  status: "未受講" | "try" | "Done"
+  status: "未登録" | "練習中" | "習得済み"
 ) {
   const supabase = await createClient()
   await supabase.from("lessons").update({ status }).eq("id", id)
   revalidatePath("/lessons")
+  revalidatePath("/texts")
 }

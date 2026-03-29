@@ -38,7 +38,7 @@ Rules:
 - frequency is 1-5 stars based on how commonly useful this is for Takaki
 - examples should be personalized to Takaki's context (PM work, Vietnam life, gym, cats)
 - conversation examples should be 3-turn exchanges (A and B, 3 lines each = 6 total lines)
-- conversation lines must NOT include "A:" or "B:" prefixes - just the dialogue
+- conversation lines MUST include "A: " or "B: " prefixes exactly as shown in the example
 - detail can be null if summary is sufficient
 - Return ONLY valid JSON, no markdown, no explanation`
 
