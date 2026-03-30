@@ -22,7 +22,7 @@ export async function incrementGrammarPlayCount(id: string) {
     })
     .eq("id", id)
 
-  await upsertPracticeLog()
+  await upsertGrammarPracticeLog()
   revalidatePath("/repeating/grammar")
   revalidatePath("/")
 }
@@ -46,31 +46,56 @@ export async function incrementExpressionPlayCount(id: string) {
     })
     .eq("id", id)
 
-  await upsertPracticeLog()
+  await upsertExpressionPracticeLog()
   revalidatePath("/repeating/expression")
   revalidatePath("/")
 }
 
-export async function upsertPracticeLog() {
+async function upsertGrammarPracticeLog() {
   const supabase = await createClient()
   const today = new Date().toISOString().split("T")[0]
 
-  const [grammarResult, expressionResult] = await Promise.all([
-    supabase
-      .from("grammar")
-      .select("id", { count: "exact", head: true })
-      .eq("last_played_at", today),
-    supabase
-      .from("expressions")
-      .select("id", { count: "exact", head: true })
-      .eq("last_played_at", today),
-  ])
+  const { count } = await supabase
+    .from("grammar")
+    .select("id", { count: "exact", head: true })
+    .eq("last_played_at", today)
+
+  const { data: existing } = await supabase
+    .from("practice_logs")
+    .select("expression_done_count")
+    .eq("practiced_at", today)
+    .maybeSingle()
 
   await supabase.from("practice_logs").upsert(
     {
       practiced_at: today,
-      grammar_done_count: grammarResult.count ?? 0,
-      expression_done_count: expressionResult.count ?? 0,
+      grammar_done_count: count ?? 0,
+      expression_done_count: existing?.expression_done_count ?? 0,
+    },
+    { onConflict: "practiced_at" }
+  )
+}
+
+async function upsertExpressionPracticeLog() {
+  const supabase = await createClient()
+  const today = new Date().toISOString().split("T")[0]
+
+  const { count } = await supabase
+    .from("expressions")
+    .select("id", { count: "exact", head: true })
+    .eq("last_played_at", today)
+
+  const { data: existing } = await supabase
+    .from("practice_logs")
+    .select("grammar_done_count")
+    .eq("practiced_at", today)
+    .maybeSingle()
+
+  await supabase.from("practice_logs").upsert(
+    {
+      practiced_at: today,
+      grammar_done_count: existing?.grammar_done_count ?? 0,
+      expression_done_count: count ?? 0,
     },
     { onConflict: "practiced_at" }
   )
