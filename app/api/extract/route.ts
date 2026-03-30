@@ -74,6 +74,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unexpected response" }, { status: 500 })
   }
 
-  const result = JSON.parse(content.text)
+  // Strip markdown code blocks if present
+  const rawText = content.text.replace(/^```(?:json)?\s*/i, "").replace(/\s*```\s*$/i, "").trim()
+
+  let result
+  try {
+    result = JSON.parse(rawText)
+  } catch {
+    return NextResponse.json({ error: "Failed to parse response" }, { status: 500 })
+  }
   return NextResponse.json(result)
 }

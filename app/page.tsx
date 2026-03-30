@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import Link from "next/link"
-import { Flame, CalendarDays, BookOpen, MessageSquare, Repeat2 } from "lucide-react"
+import { Flame, CalendarDays, BookOpen, MessageSquare, ChevronRight } from "lucide-react"
 
 function calculateStreak(dates: string[]): number {
   if (dates.length === 0) return 0
@@ -165,15 +165,13 @@ export default async function HomePage() {
   const logMap = new Map(
     (logsChartResult.data ?? []).map((l) => [l.practiced_at, l])
   )
-  let lastG = 0
-  let lastE = 0
   const chartData = last14Days.map((date) => {
     const log = logMap.get(date)
-    if (log) {
-      lastG = log.grammar_done_count ?? lastG
-      lastE = log.expression_done_count ?? lastE
+    return {
+      date,
+      grammar: log?.grammar_done_count ?? 0,
+      expression: log?.expression_done_count ?? 0,
     }
-    return { date, grammar: lastG, expression: lastE }
   })
 
   const metrics = [
@@ -227,8 +225,8 @@ export default async function HomePage() {
                 <CardTitle className="text-xs font-medium text-muted-foreground">
                   {title}
                 </CardTitle>
-                <div className={`rounded-lg p-1.5 ${bg}`}>
-                  <Icon className={`h-3.5 w-3.5 ${color}`} />
+                <div className={`rounded-lg p-2 ${bg}`}>
+                  <Icon className={`h-5 w-5 ${color}`} />
                 </div>
               </div>
             </CardHeader>
@@ -249,34 +247,34 @@ export default async function HomePage() {
         </h2>
         <div className="grid grid-cols-2 gap-3">
           <Link href="/repeating/grammar">
-            <Card className="cursor-pointer hover:border-primary hover:shadow-md transition-all group">
+            <Card className="cursor-pointer border-2 border-indigo-200 bg-indigo-50/40 hover:border-indigo-400 hover:bg-indigo-50 hover:shadow-md transition-all group">
               <CardContent className="flex items-center gap-3 p-4">
-                <div className="rounded-lg bg-indigo-50 p-2.5 group-hover:bg-indigo-100 transition-colors">
+                <div className="rounded-lg bg-indigo-100 p-2.5 group-hover:bg-indigo-200 transition-colors">
                   <BookOpen className="h-5 w-5 text-indigo-600" />
                 </div>
                 <div>
-                  <p className="font-semibold text-sm">文法練習</p>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="font-semibold text-sm text-indigo-900">文法練習</p>
+                  <p className="text-xs text-indigo-600/70">
                     {grammars.filter((g) => g.play_count < 10).length} 件 練習中
                   </p>
                 </div>
-                <Repeat2 className="h-4 w-4 text-muted-foreground ml-auto opacity-40 group-hover:opacity-70" />
+                <ChevronRight className="h-5 w-5 text-indigo-400 ml-auto group-hover:text-indigo-600 transition-colors" />
               </CardContent>
             </Card>
           </Link>
           <Link href="/repeating/expression">
-            <Card className="cursor-pointer hover:border-primary hover:shadow-md transition-all group">
+            <Card className="cursor-pointer border-2 border-green-200 bg-green-50/40 hover:border-green-400 hover:bg-green-50 hover:shadow-md transition-all group">
               <CardContent className="flex items-center gap-3 p-4">
-                <div className="rounded-lg bg-green-50 p-2.5 group-hover:bg-green-100 transition-colors">
+                <div className="rounded-lg bg-green-100 p-2.5 group-hover:bg-green-200 transition-colors">
                   <MessageSquare className="h-5 w-5 text-green-600" />
                 </div>
                 <div>
-                  <p className="font-semibold text-sm">フレーズ練習</p>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="font-semibold text-sm text-green-900">フレーズ練習</p>
+                  <p className="text-xs text-green-600/70">
                     {expressions.filter((e) => e.play_count < 10).length} 件 練習中
                   </p>
                 </div>
-                <Repeat2 className="h-4 w-4 text-muted-foreground ml-auto opacity-40 group-hover:opacity-70" />
+                <ChevronRight className="h-5 w-5 text-green-400 ml-auto group-hover:text-green-600 transition-colors" />
               </CardContent>
             </Card>
           </Link>
@@ -287,7 +285,7 @@ export default async function HomePage() {
       <Card className="shadow-sm">
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-sm font-semibold">Done 数の推移（14日間）</CardTitle>
+            <CardTitle className="text-sm font-semibold">日次練習数（14日間）</CardTitle>
             <div className="flex items-center gap-4 text-xs text-muted-foreground">
               <span className="flex items-center gap-1">
                 <span className="inline-block w-3 h-0.5 bg-indigo-500 rounded" />

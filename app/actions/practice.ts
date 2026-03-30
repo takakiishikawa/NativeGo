@@ -59,11 +59,11 @@ export async function upsertPracticeLog() {
     supabase
       .from("grammar")
       .select("id", { count: "exact", head: true })
-      .gte("play_count", 10),
+      .eq("last_played_at", today),
     supabase
       .from("expressions")
       .select("id", { count: "exact", head: true })
-      .gte("play_count", 10),
+      .eq("last_played_at", today),
   ])
 
   await supabase.from("practice_logs").upsert(

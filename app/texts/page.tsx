@@ -10,7 +10,7 @@ import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Dialog } from "@/components/ui/dialog"
 import { toast } from "sonner"
-import { saveGrammar, saveExpressions } from "@/app/actions/practice"
+import { saveGrammar, saveExpressions, updateLessonStatus } from "@/app/actions/practice"
 import type { Lesson, ExtractResult, ExtractedGrammar, ExtractedExpression } from "@/lib/types"
 import { Loader2, Star, BookOpen, MessageSquare, Plus } from "lucide-react"
 
@@ -224,6 +224,7 @@ function AddModal({
     try {
       if (result.grammar.length > 0) await saveGrammar(result.grammar, selectedLessonId)
       if (result.expressions.length > 0) await saveExpressions(result.expressions, selectedLessonId)
+      await updateLessonStatus(selectedLessonId, "練習中")
       toast.success(
         `文法 ${result.grammar.length}件・フレーズ ${result.expressions.length}件を保存しました`
       )
