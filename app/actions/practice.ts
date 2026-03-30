@@ -23,7 +23,6 @@ export async function incrementGrammarPlayCount(id: string) {
     .eq("id", id)
 
   await upsertGrammarPracticeLog()
-  revalidatePath("/repeating/grammar")
   revalidatePath("/")
 }
 
@@ -47,7 +46,6 @@ export async function incrementExpressionPlayCount(id: string) {
     .eq("id", id)
 
   await upsertExpressionPracticeLog()
-  revalidatePath("/repeating/expression")
   revalidatePath("/")
 }
 
