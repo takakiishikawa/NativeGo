@@ -35,6 +35,7 @@ Return a JSON object with exactly this structure:
 }
 
 Rules:
+- grammar: extract only the grammar themes actually covered in the lesson material — typically 1 to 3 items. Do NOT pad to a fixed count.
 - frequency is 1-5 stars based on how commonly useful this is for Takaki
 - Both "examples" (grammar) and "conversation" (expressions) MUST be A/B/A 3-turn format, maximum 4 lines
 - All lines MUST start with exactly "A: " or "B: " prefixes

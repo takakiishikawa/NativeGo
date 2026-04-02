@@ -184,6 +184,14 @@ function LessonCombobox({
   )
 }
 
+const LOADING_STEPS = [
+  "テキストを解析中...",
+  "文法テーマを特定中...",
+  "フレーズを識別中...",
+  "例文・会話例を生成中...",
+  "内容を整形中...",
+]
+
 function AddModal({
   unregisteredLessons,
   onClose,
@@ -196,8 +204,19 @@ function AddModal({
   const [selectedLessonId, setSelectedLessonId] = useState("")
   const [text, setText] = useState("")
   const [loading, setLoading] = useState(false)
+  const [loadingStep, setLoadingStep] = useState(0)
   const [saving, setSaving] = useState(false)
   const [result, setResult] = useState<ExtractResult | null>(null)
+
+  const selectedLesson = unregisteredLessons.find((l) => l.id === selectedLessonId)
+
+  useEffect(() => {
+    if (!loading) { setLoadingStep(0); return }
+    const interval = setInterval(() => {
+      setLoadingStep((prev) => Math.min(prev + 1, LOADING_STEPS.length - 1))
+    }, 4000)
+    return () => clearInterval(interval)
+  }, [loading])
 
   async function handleExtract() {
     if (!selectedLessonId || !text.trim()) return
@@ -240,60 +259,25 @@ function AddModal({
   return (
     <Dialog open onClose={onClose} title="テキスト追加" className="max-w-2xl">
       <div className="space-y-5">
-        {/* Lesson selector */}
-        <div className="space-y-1.5">
-          <label className="text-sm font-medium">レッスン選択</label>
-          {unregisteredLessons.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-2">
-              未登録のレッスンがありません
-            </p>
-          ) : (
-            <LessonCombobox
-              lessons={unregisteredLessons}
-              value={selectedLessonId}
-              onChange={setSelectedLessonId}
-            />
-          )}
-        </div>
 
-        {/* Text input */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium">教材テキスト</label>
-          <Textarea
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            placeholder="Native Campの教材テキストをここに貼り付け..."
-            className="min-h-36 font-mono text-xs"
-          />
-          <Button
-            onClick={handleExtract}
-            disabled={!selectedLessonId || !text.trim() || loading}
-            className="w-full"
-          >
-            {loading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Claude APIで抽出中...
-              </>
-            ) : (
-              "文法・フレーズを自動抽出"
-            )}
-          </Button>
-        </div>
+        {/* ── 抽出完了後: レッスン情報 + 結果のみ ── */}
+        {result ? (
+          <>
+            {/* 対象レッスン（read-only） */}
+            <div className="rounded-lg border bg-muted/40 px-4 py-3 flex items-center gap-3">
+              <span className="font-mono text-sm text-muted-foreground w-14 shrink-0">
+                {selectedLesson?.lesson_no}
+              </span>
+              <span className="text-sm font-medium">{selectedLesson?.topic}</span>
+            </div>
 
-        {/* Preview */}
-        {result && (
-          <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <p className="text-xs text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 文法 {result.grammar.length}件・フレーズ {result.expressions.length}件 抽出
               </p>
               <Button size="sm" onClick={handleSave} disabled={saving}>
                 {saving ? (
-                  <>
-                    <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
-                    保存中...
-                  </>
+                  <><Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />保存中...</>
                 ) : (
                   "すべて保存"
                 )}
@@ -303,9 +287,7 @@ function AddModal({
             {result.grammar.length > 0 && (
               <div className="space-y-2">
                 <p className="text-sm font-semibold">文法</p>
-                {result.grammar.map((g, i) => (
-                  <GrammarPreview key={i} item={g} />
-                ))}
+                {result.grammar.map((g, i) => <GrammarPreview key={i} item={g} />)}
               </div>
             )}
 
@@ -314,13 +296,72 @@ function AddModal({
             {result.expressions.length > 0 && (
               <div className="space-y-2">
                 <p className="text-sm font-semibold">フレーズ</p>
-                {result.expressions.map((e, i) => (
-                  <ExpressionPreview key={i} item={e} />
-                ))}
+                {result.expressions.map((e, i) => <ExpressionPreview key={i} item={e} />)}
               </div>
             )}
+          </>
+        ) : loading ? (
+          /* ── 抽出中: プログレス表示 ── */
+          <div className="py-6 space-y-5">
+            <div className="flex flex-col items-center gap-3 text-center">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <p className="text-sm font-medium">{LOADING_STEPS[loadingStep]}</p>
+              <p className="text-xs text-muted-foreground">通常15〜30秒かかります</p>
+            </div>
+            <div className="space-y-1.5">
+              <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-primary rounded-full transition-all duration-[3000ms] ease-out"
+                  style={{ width: `${((loadingStep + 1) / LOADING_STEPS.length) * 85}%` }}
+                />
+              </div>
+              <div className="flex justify-between text-xs text-muted-foreground px-0.5">
+                {LOADING_STEPS.map((step, i) => (
+                  <span
+                    key={i}
+                    className={`transition-colors ${i <= loadingStep ? "text-primary font-medium" : ""}`}
+                  >
+                    {i + 1}
+                  </span>
+                ))}
+              </div>
+            </div>
           </div>
+        ) : (
+          /* ── 入力フォーム ── */
+          <>
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium">レッスン選択</label>
+              {unregisteredLessons.length === 0 ? (
+                <p className="text-sm text-muted-foreground py-2">未登録のレッスンがありません</p>
+              ) : (
+                <LessonCombobox
+                  lessons={unregisteredLessons}
+                  value={selectedLessonId}
+                  onChange={setSelectedLessonId}
+                />
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">教材テキスト</label>
+              <Textarea
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                placeholder="Native Campの教材テキストをここに貼り付け..."
+                className="min-h-36 font-mono text-xs"
+              />
+              <Button
+                onClick={handleExtract}
+                disabled={!selectedLessonId || !text.trim()}
+                className="w-full"
+              >
+                文法・フレーズを自動抽出
+              </Button>
+            </div>
+          </>
         )}
+
       </div>
     </Dialog>
   )
