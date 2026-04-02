@@ -122,7 +122,7 @@ export default function ExpressionRepeatingPage() {
         const ttsText = lines[i].replace(/^[AB]:\s*/i, "")
         await speakLine(ttsText, i, playRate)
         if (!cancelRef.current) {
-          await pause(30)
+          await pause(10)
         }
       }
 
@@ -131,24 +131,12 @@ export default function ExpressionRepeatingPage() {
       setCurrentLine(-1)
       playCount++
       incrementExpressionPlayCount(item.id) // fire and forget for faster transition
-      const updatedCount = item.play_count + 1
 
-      if (updatedCount >= 10) {
-        localItems = localItems.filter((_, idx) => idx !== localIndex)
-        if (localItems.length === 0) {
-          setItems([])
-          setIndex(0)
-          setPlaying(false)
-          setShowComplete(true)
-          return
-        }
-        localIndex = Math.min(localIndex, localItems.length - 1)
-      } else {
-        localItems = localItems.map((it, idx) =>
-          idx === localIndex ? { ...it, play_count: updatedCount } : it
-        )
-        localIndex = (localIndex + 1) % localItems.length
-      }
+      // Update play_count locally for display only — never remove items mid-session
+      localItems = localItems.map((it, idx) =>
+        idx === localIndex ? { ...it, play_count: it.play_count + 1 } : it
+      )
+      localIndex = (localIndex + 1) % localItems.length
 
       setItems([...localItems])
       setIndex(localIndex)
