@@ -12,13 +12,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import type { Grammar } from "@/lib/types"
 import { Star } from "lucide-react"
 
@@ -39,8 +32,6 @@ export default function GrammarPage() {
   const supabase = createClient()
   const [items, setItems] = useState<Grammar[]>([])
   const [loading, setLoading] = useState(true)
-  const [statusFilter, setStatusFilter] = useState<"all" | "try" | "done">("all")
-  const [freqFilter, setFreqFilter] = useState<"all" | "3" | "4" | "5">("all")
   const [selected, setSelected] = useState<Grammar | null>(null)
 
   useEffect(() => {
@@ -55,90 +46,58 @@ export default function GrammarPage() {
     load()
   }, [])
 
-  const filtered = items.filter((item) => {
-    const isDone = item.play_count >= 10
-    if (statusFilter === "try" && isDone) return false
-    if (statusFilter === "done" && !isDone) return false
-    if (freqFilter !== "all" && item.frequency < parseInt(freqFilter)) return false
-    return true
-  })
-
   if (loading) {
     return <div className="flex items-center justify-center h-64 text-muted-foreground">読み込み中...</div>
   }
 
   return (
-    <div className="space-y-6">
-      <div>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">文法一覧</h1>
-        <p className="text-muted-foreground mt-1">全 {items.length} 件</p>
-      </div>
-
-      <div className="flex gap-3">
-        <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as typeof statusFilter)}>
-          <SelectTrigger className="w-32">
-            <SelectValue placeholder="ステータス" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">すべて</SelectItem>
-            <SelectItem value="try">練習中</SelectItem>
-            <SelectItem value="done">習得済み</SelectItem>
-          </SelectContent>
-        </Select>
-
-        <Select value={freqFilter} onValueChange={(v) => setFreqFilter(v as typeof freqFilter)}>
-          <SelectTrigger className="w-40">
-            <SelectValue placeholder="使用頻度" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">全頻度</SelectItem>
-            <SelectItem value="3">★3以上</SelectItem>
-            <SelectItem value="4">★4以上</SelectItem>
-            <SelectItem value="5">★5のみ</SelectItem>
-          </SelectContent>
-        </Select>
-
-        <span className="text-sm text-muted-foreground self-center">
-          {filtered.length} 件表示
+        <span className="text-2xl font-bold">
+          {items.length}
+          <span className="text-base font-normal text-muted-foreground ml-1">件</span>
         </span>
       </div>
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>文法名</TableHead>
-            <TableHead>概要</TableHead>
-            <TableHead>頻度</TableHead>
-            <TableHead>回数</TableHead>
-            <TableHead>ステータス</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {filtered.map((item) => (
-            <TableRow
-              key={item.id}
-              className="cursor-pointer hover:bg-muted/50"
-              onClick={() => setSelected(item)}
-            >
-              <TableCell className="font-medium">{item.name}</TableCell>
-              <TableCell className="text-muted-foreground text-sm max-w-xs truncate">
-                {item.summary}
-              </TableCell>
-              <TableCell>
-                <StarRating value={item.frequency} />
-              </TableCell>
-              <TableCell className="text-sm">{item.play_count} / 10</TableCell>
-              <TableCell>
-                {item.play_count >= 10 ? (
-                  <Badge variant="outline" className="text-green-600 border-green-300">習得済み</Badge>
-                ) : (
-                  <Badge>練習中</Badge>
-                )}
-              </TableCell>
+      <div className="rounded-md border overflow-auto">
+        <Table>
+          <TableHeader>
+            <TableRow className="sticky top-0 z-10 bg-background border-b">
+              <TableHead>文法名</TableHead>
+              <TableHead>概要</TableHead>
+              <TableHead>頻度</TableHead>
+              <TableHead>回数</TableHead>
+              <TableHead>ステータス</TableHead>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHeader>
+          <TableBody>
+            {items.map((item) => (
+              <TableRow
+                key={item.id}
+                className="cursor-pointer hover:bg-muted/50"
+                onClick={() => setSelected(item)}
+              >
+                <TableCell className="font-medium">{item.name}</TableCell>
+                <TableCell className="text-muted-foreground text-sm max-w-xs truncate">
+                  {item.summary}
+                </TableCell>
+                <TableCell>
+                  <StarRating value={item.frequency} />
+                </TableCell>
+                <TableCell className="text-sm">{item.play_count} / 10</TableCell>
+                <TableCell>
+                  {item.play_count >= 10 ? (
+                    <Badge variant="outline" className="text-green-600 border-green-300">習得済み</Badge>
+                  ) : (
+                    <Badge>練習中</Badge>
+                  )}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
 
       {selected && (
         <Dialog open={!!selected} onClose={() => setSelected(null)} title={selected.name}>

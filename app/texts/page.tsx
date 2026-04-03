@@ -474,11 +474,12 @@ export default function TextsPage() {
 
   const byLevel = (level: number) => lessons.filter((l) => l.level === level)
 
-  const statusSummary = (level: number) => {
+  const levelStatusSummary = (level: number) => {
     const lvl = byLevel(level)
     const done = lvl.filter((l) => l.status === "習得済み").length
     const inProgress = lvl.filter((l) => l.status === "練習中").length
-    return `習得済み ${done} / 練習中 ${inProgress} / 全 ${lvl.length} 件`
+    const unregistered = lvl.filter((l) => l.status === "未登録").length
+    return { total: lvl.length, done, inProgress, unregistered }
   }
 
   const unregisteredLessons = lessons.filter((l) => l.status === "未登録")
@@ -513,16 +514,27 @@ export default function TextsPage() {
           <TabsTrigger value="3">Level 3</TabsTrigger>
         </TabsList>
 
-        {[1, 2, 3].map((lvl) => (
+        {[1, 2, 3].map((lvl) => {
+          const s = levelStatusSummary(lvl)
+          return (
           <TabsContent key={lvl} value={String(lvl)} className="space-y-3 mt-4">
-            <p className="text-sm text-muted-foreground">{statusSummary(lvl)}</p>
+            <div className="flex items-center gap-3">
+              <span className="text-2xl font-bold">
+                {s.total}
+                <span className="text-base font-normal text-muted-foreground ml-1">件</span>
+              </span>
+              <Badge className="bg-blue-100 text-blue-700 border border-blue-300 hover:bg-blue-100">練習中 {s.inProgress}</Badge>
+              <Badge className="bg-green-100 text-green-700 border border-green-300 hover:bg-green-100">習得済み {s.done}</Badge>
+              <Badge variant="outline" className="text-muted-foreground">未登録 {s.unregistered}</Badge>
+            </div>
             <LessonList
               lessons={byLevel(lvl)}
               grammarMap={grammarMap}
               expressionMap={expressionMap}
             />
           </TabsContent>
-        ))}
+          )
+        })}
       </Tabs>
 
       {showAddModal && (
