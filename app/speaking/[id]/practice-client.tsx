@@ -61,7 +61,9 @@ export function PracticeClient({
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const SR = window.SpeechRecognition || (window as Window & { webkitSpeechRecognition?: typeof SpeechRecognition }).webkitSpeechRecognition
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const w = window as any
+      const SR = w.SpeechRecognition || w.webkitSpeechRecognition
       if (!SR) setSupported(false)
     }
     return () => {
@@ -91,7 +93,9 @@ export function PracticeClient({
   }, [grammarId, grammarName, router])
 
   function startRecording() {
-    const SR = window.SpeechRecognition || (window as Window & { webkitSpeechRecognition?: typeof SpeechRecognition }).webkitSpeechRecognition
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const w = window as any
+    const SR = w.SpeechRecognition || w.webkitSpeechRecognition
     if (!SR) return
 
     stoppedRef.current = false
