@@ -80,7 +80,7 @@ export default function ConceptPage() {
       <Section title="コアバリュー">
         <div className="rounded-lg border bg-white dark:bg-card px-5 py-4">
           <p className="text-sm text-neutral-700 dark:text-neutral-300 leading-relaxed">
-            Native Camp のレッスン体験を、自分だけの練習教材に変換して定着させるツール
+            Native Camp のレッスンで出会った英語を、自分だけの教材として反復・定着させ、次の会話で使える力に変える。
           </p>
         </div>
       </Section>
@@ -117,15 +117,13 @@ export default function ConceptPage() {
         </div>
       </Section>
 
-      {/* スコープ */}
-      <Section title="スコープ">
-        <ConceptTable
-          headers={["", "内容"]}
-          rows={[
-            ["解くこと", "Native Camp と連動した復習・定着・組み立て練習"],
-            ["解かないこと", "語彙インプット・リスニング強化・英会話実践・テスト対策・汎用教材対応"],
-          ]}
-        />
+      {/* 結果指標 */}
+      <Section title="結果指標">
+        <div className="rounded-lg border bg-white dark:bg-card px-5 py-4">
+          <p className="text-sm text-neutral-700 dark:text-neutral-300 leading-relaxed">
+            Native Camp の AI Speaking Test を定期的に受けてスコアを NativeGo に記録し、推移を確認する。
+          </p>
+        </div>
       </Section>
 
       {/* 行動指標 */}
@@ -140,13 +138,15 @@ export default function ConceptPage() {
         />
       </Section>
 
-      {/* 結果指標 */}
-      <Section title="結果指標">
-        <div className="rounded-lg border bg-white dark:bg-card px-5 py-4">
-          <p className="text-sm text-neutral-700 dark:text-neutral-300 leading-relaxed">
-            Native Camp の AI Speaking Test を定期的に受けてスコアを NativeGo に記録し、推移を確認する。
-          </p>
-        </div>
+      {/* スコープ */}
+      <Section title="スコープ">
+        <ConceptTable
+          headers={["", "内容"]}
+          rows={[
+            ["解くこと", "Native Camp と連動した復習・定着・組み立て練習"],
+            ["解かないこと", "語彙インプット・リスニング強化・英会話実践・テスト対策・汎用教材対応"],
+          ]}
+        />
       </Section>
     </div>
   )
