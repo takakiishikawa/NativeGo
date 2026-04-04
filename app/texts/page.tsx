@@ -494,17 +494,11 @@ export default function TextsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">テキスト</h1>
-          <p className="text-muted-foreground mt-1">
-            レッスンごとの文法・フレーズ登録状況
-          </p>
-        </div>
-        <Button onClick={() => setShowAddModal(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          テキスト追加
-        </Button>
+      <div>
+        <h1 className="text-3xl font-bold">テキスト</h1>
+        <p className="text-muted-foreground mt-1">
+          レッスンごとの文法・フレーズ登録状況
+        </p>
       </div>
 
       <Tabs defaultValue="1">
@@ -518,14 +512,20 @@ export default function TextsPage() {
           const s = levelStatusSummary(lvl)
           return (
           <TabsContent key={lvl} value={String(lvl)} className="space-y-3 mt-4">
-            <div className="flex items-center gap-3">
-              <span className="text-2xl font-bold">
-                {s.total}
-                <span className="text-base font-normal text-muted-foreground ml-1">件</span>
-              </span>
-              <Badge className="border-transparent bg-[#FFFBEB] text-[#F59E0B] hover:bg-[#FFFBEB]">練習中 {s.inProgress}</Badge>
-              <Badge className="border-transparent bg-[#ECFDF5] text-[#10B981] hover:bg-[#ECFDF5]">習得済み {s.done}</Badge>
-              <Badge className="border-transparent bg-[#F1F5F9] text-[#64748B] hover:bg-[#F1F5F9]">未登録 {s.unregistered}</Badge>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className="text-2xl font-bold">
+                  {s.total}
+                  <span className="text-base font-normal text-muted-foreground ml-1">件</span>
+                </span>
+                <Badge className="border-transparent bg-[#FFFBEB] text-[#F59E0B] hover:bg-[#FFFBEB]">練習中 {s.inProgress}</Badge>
+                <Badge className="border-transparent bg-[#ECFDF5] text-[#10B981] hover:bg-[#ECFDF5]">習得済み {s.done}</Badge>
+                <Badge className="border-transparent bg-[#F1F5F9] text-[#64748B] hover:bg-[#F1F5F9]">未登録 {s.unregistered}</Badge>
+              </div>
+              <Button size="sm" onClick={() => setShowAddModal(true)}>
+                <Plus className="mr-1.5 h-4 w-4" />
+                テキスト追加
+              </Button>
             </div>
             <LessonList
               lessons={byLevel(lvl)}

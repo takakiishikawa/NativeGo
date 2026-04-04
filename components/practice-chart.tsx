@@ -75,7 +75,7 @@ export function PracticeChart({ data }: { data: DataPoint[] }) {
                 文法 {hovered ? hovered.grammar : totalGrammar}
               </span>
               <span className="flex items-center gap-1.5 text-green-600 font-medium">
-                <span className="inline-block w-2.5 h-2.5 rounded-full bg-green-500" />
+                <span className="inline-block w-2.5 h-2.5 rounded-full bg-[#10B981]" />
                 フレーズ {hovered ? hovered.expression : totalExpression}
               </span>
             </div>

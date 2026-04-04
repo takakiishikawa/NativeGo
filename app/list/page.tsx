@@ -13,13 +13,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import type { Grammar, Expression } from "@/lib/types"
 
 type GrammarWithLesson = Grammar & { lessons: { lesson_no: string } | null }
@@ -39,12 +32,24 @@ function StarRating({ value }: { value: number }) {
   )
 }
 
+function sortByLessonNo<T extends { lessons: { lesson_no: string } | null }>(items: T[]): T[] {
+  return [...items].sort((a, b) => {
+    const aN = a.lessons?.lesson_no ?? ""
+    const bN = b.lessons?.lesson_no ?? ""
+    const ap = aN.split("-").map(Number)
+    const bp = bN.split("-").map(Number)
+    for (let i = 0; i < Math.max(ap.length, bp.length); i++) {
+      const diff = (ap[i] ?? 0) - (bp[i] ?? 0)
+      if (diff !== 0) return diff
+    }
+    return 0
+  })
+}
+
 function GrammarTab() {
   const supabase = createClient()
   const [items, setItems] = useState<GrammarWithLesson[]>([])
   const [loading, setLoading] = useState(true)
-  const [statusFilter, setStatusFilter] = useState<"all" | "try" | "done">("all")
-  const [freqFilter, setFreqFilter] = useState<"all" | "3" | "4" | "5">("all")
   const [selected, setSelected] = useState<GrammarWithLesson | null>(null)
 
   useEffect(() => {
@@ -52,80 +57,52 @@ function GrammarTab() {
       const { data } = await supabase
         .from("grammar")
         .select("*, lessons(lesson_no)")
-        .order("created_at", { ascending: false })
-      setItems((data ?? []) as GrammarWithLesson[])
+      setItems(sortByLessonNo((data ?? []) as GrammarWithLesson[]))
       setLoading(false)
     }
     load()
   }, [])
-
-  const filtered = items.filter((item) => {
-    const isDone = item.play_count >= 10
-    if (statusFilter === "try" && isDone) return false
-    if (statusFilter === "done" && !isDone) return false
-    if (freqFilter !== "all" && item.frequency < parseInt(freqFilter)) return false
-    return true
-  })
 
   if (loading) {
     return <div className="flex items-center justify-center h-64 text-muted-foreground">読み込み中...</div>
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex gap-3 items-center">
-        <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as typeof statusFilter)}>
-          <SelectTrigger className="w-32">
-            <SelectValue placeholder="ステータス" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">すべて</SelectItem>
-            <SelectItem value="try">練習中</SelectItem>
-            <SelectItem value="done">習得済み</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={freqFilter} onValueChange={(v) => setFreqFilter(v as typeof freqFilter)}>
-          <SelectTrigger className="w-40">
-            <SelectValue placeholder="使用頻度" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">全頻度</SelectItem>
-            <SelectItem value="3">★3以上</SelectItem>
-            <SelectItem value="4">★4以上</SelectItem>
-            <SelectItem value="5">★5のみ</SelectItem>
-          </SelectContent>
-        </Select>
-        <span className="text-sm text-muted-foreground">{filtered.length} 件 / 全 {items.length} 件</span>
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <span className="text-sm text-muted-foreground">全 {items.length} 件</span>
       </div>
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-20">テキストID</TableHead>
-            <TableHead>文法名</TableHead>
-            <TableHead>概要</TableHead>
-            <TableHead>頻度</TableHead>
-            <TableHead>回数</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {filtered.map((item) => (
-            <TableRow
-              key={item.id}
-              className="cursor-pointer hover:bg-muted/50"
-              onClick={() => setSelected(item)}
-            >
-              <TableCell className="font-mono text-xs text-muted-foreground">
-                {item.lessons?.lesson_no ?? "—"}
-              </TableCell>
-              <TableCell className="font-medium">{item.name}</TableCell>
-              <TableCell className="text-muted-foreground text-sm max-w-xs truncate">{item.summary.split("\n")[0]}{item.summary.includes("\n") ? "..." : ""}</TableCell>
-              <TableCell><StarRating value={item.frequency} /></TableCell>
-              <TableCell className="text-sm text-muted-foreground">{item.play_count} / 10</TableCell>
+      <div className="rounded-md border overflow-auto">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-20">テキストID</TableHead>
+              <TableHead>文法名</TableHead>
+              <TableHead>概要</TableHead>
+              <TableHead>頻度</TableHead>
+              <TableHead>回数</TableHead>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHeader>
+          <TableBody>
+            {items.map((item) => (
+              <TableRow
+                key={item.id}
+                className="cursor-pointer hover:bg-muted/50"
+                onClick={() => setSelected(item)}
+              >
+                <TableCell className="font-mono text-xs text-muted-foreground">
+                  {item.lessons?.lesson_no ?? "—"}
+                </TableCell>
+                <TableCell className="font-medium">{item.name}</TableCell>
+                <TableCell className="text-muted-foreground text-sm max-w-xs truncate">{item.summary.split("\n")[0]}{item.summary.includes("\n") ? "..." : ""}</TableCell>
+                <TableCell><StarRating value={item.frequency} /></TableCell>
+                <TableCell className="text-sm text-muted-foreground">{item.play_count} / 10</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
 
       {selected && (
         <Dialog open={!!selected} onClose={() => setSelected(null)} title={selected.name}>
@@ -159,8 +136,6 @@ function PhraseTab() {
   const supabase = createClient()
   const [items, setItems] = useState<ExpressionWithLesson[]>([])
   const [loading, setLoading] = useState(true)
-  const [statusFilter, setStatusFilter] = useState<"all" | "try" | "done">("all")
-  const [freqFilter, setFreqFilter] = useState<"all" | "3" | "4" | "5">("all")
   const [selected, setSelected] = useState<ExpressionWithLesson | null>(null)
 
   useEffect(() => {
@@ -168,82 +143,54 @@ function PhraseTab() {
       const { data } = await supabase
         .from("expressions")
         .select("*, lessons(lesson_no)")
-        .order("created_at", { ascending: false })
-      setItems((data ?? []) as ExpressionWithLesson[])
+      setItems(sortByLessonNo((data ?? []) as ExpressionWithLesson[]))
       setLoading(false)
     }
     load()
   }, [])
-
-  const filtered = items.filter((item) => {
-    const isDone = item.play_count >= 10
-    if (statusFilter === "try" && isDone) return false
-    if (statusFilter === "done" && !isDone) return false
-    if (freqFilter !== "all" && item.frequency < parseInt(freqFilter)) return false
-    return true
-  })
 
   if (loading) {
     return <div className="flex items-center justify-center h-64 text-muted-foreground">読み込み中...</div>
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex gap-3 items-center">
-        <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as typeof statusFilter)}>
-          <SelectTrigger className="w-32">
-            <SelectValue placeholder="ステータス" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">すべて</SelectItem>
-            <SelectItem value="try">練習中</SelectItem>
-            <SelectItem value="done">習得済み</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={freqFilter} onValueChange={(v) => setFreqFilter(v as typeof freqFilter)}>
-          <SelectTrigger className="w-40">
-            <SelectValue placeholder="使用頻度" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">全頻度</SelectItem>
-            <SelectItem value="3">★3以上</SelectItem>
-            <SelectItem value="4">★4以上</SelectItem>
-            <SelectItem value="5">★5のみ</SelectItem>
-          </SelectContent>
-        </Select>
-        <span className="text-sm text-muted-foreground">{filtered.length} 件 / 全 {items.length} 件</span>
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <span className="text-sm text-muted-foreground">全 {items.length} 件</span>
       </div>
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-20">テキストID</TableHead>
-            <TableHead>種別</TableHead>
-            <TableHead>フレーズ</TableHead>
-            <TableHead>意味</TableHead>
-            <TableHead>頻度</TableHead>
-            <TableHead>回数</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {filtered.map((item) => (
-            <TableRow
-              key={item.id}
-              className="cursor-pointer hover:bg-muted/50"
-              onClick={() => setSelected(item)}
-            >
-              <TableCell className="font-mono text-xs text-muted-foreground">
-                {item.lessons?.lesson_no ?? "—"}
-              </TableCell>
-              <TableCell><Badge variant="outline" className="text-xs">{item.category}</Badge></TableCell>
-              <TableCell className="font-medium">{item.expression}</TableCell>
-              <TableCell className="text-muted-foreground text-sm max-w-xs truncate">{item.meaning.split("\n")[0]}{item.meaning.includes("\n") ? "..." : ""}</TableCell>
-              <TableCell><StarRating value={item.frequency} /></TableCell>
-              <TableCell className="text-sm text-muted-foreground">{item.play_count} / 10</TableCell>
+      <div className="rounded-md border overflow-auto">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-20">テキストID</TableHead>
+              <TableHead>種別</TableHead>
+              <TableHead>フレーズ</TableHead>
+              <TableHead>意味</TableHead>
+              <TableHead>頻度</TableHead>
+              <TableHead>回数</TableHead>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHeader>
+          <TableBody>
+            {items.map((item) => (
+              <TableRow
+                key={item.id}
+                className="cursor-pointer hover:bg-muted/50"
+                onClick={() => setSelected(item)}
+              >
+                <TableCell className="font-mono text-xs text-muted-foreground">
+                  {item.lessons?.lesson_no ?? "—"}
+                </TableCell>
+                <TableCell><Badge variant="outline" className="text-xs">{item.category}</Badge></TableCell>
+                <TableCell className="font-medium">{item.expression}</TableCell>
+                <TableCell className="text-muted-foreground text-sm max-w-xs truncate">{item.meaning.split("\n")[0]}{item.meaning.includes("\n") ? "..." : ""}</TableCell>
+                <TableCell><StarRating value={item.frequency} /></TableCell>
+                <TableCell className="text-sm text-muted-foreground">{item.play_count} / 10</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
 
       {selected && (
         <Dialog open={!!selected} onClose={() => setSelected(null)} title={selected.expression}>

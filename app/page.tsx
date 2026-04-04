@@ -93,8 +93,8 @@ export default async function HomePage() {
       value: grammarDone,
       unit: "件",
       icon: BookOpen,
-      color: "text-indigo-500",
-      bg: "bg-indigo-50",
+      color: "text-blue-600",
+      bg: "bg-blue-50",
     },
     {
       title: "フレーズ Done",
@@ -144,18 +144,18 @@ export default async function HomePage() {
         </h2>
         <div className="grid grid-cols-2 gap-3">
           <Link href="/repeating/grammar">
-            <Card className="cursor-pointer border-2 border-indigo-200 bg-indigo-50/40 hover:border-indigo-400 hover:bg-indigo-50 hover:shadow-md transition-all group">
+            <Card className="cursor-pointer border-2 border-blue-200 bg-blue-50/40 hover:border-blue-400 hover:bg-blue-50 hover:shadow-md transition-all group">
               <CardContent className="flex items-center gap-3 p-4">
-                <div className="rounded-lg bg-indigo-100 p-2.5 group-hover:bg-indigo-200 transition-colors">
-                  <BookOpen className="h-5 w-5 text-indigo-600" />
+                <div className="rounded-lg bg-blue-100 p-2.5 group-hover:bg-blue-200 transition-colors">
+                  <BookOpen className="h-5 w-5 text-blue-600" />
                 </div>
                 <div>
-                  <p className="font-semibold text-base text-indigo-900">文法練習</p>
-                  <p className="text-sm text-indigo-600/70">
+                  <p className="font-semibold text-base text-blue-900">文法練習</p>
+                  <p className="text-sm text-blue-600/70">
                     {grammars.filter((g) => g.play_count < 10).length} 件 練習中
                   </p>
                 </div>
-                <ChevronRight className="h-5 w-5 text-indigo-400 ml-auto group-hover:text-indigo-600 transition-colors" />
+                <ChevronRight className="h-5 w-5 text-blue-400 ml-auto group-hover:text-blue-600 transition-colors" />
               </CardContent>
             </Card>
           </Link>
