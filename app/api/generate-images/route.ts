@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
       console.log(`[generate-images] Supabaseアップロード開始: ${fileName}`)
       const { error: uploadError } = await supabase.storage
         .from("speaking-images")
-        .upload(fileName, buffer, { contentType: inlineData.mimeType, upsert: true })
+        .upload(fileName, buffer, { contentType: mimeType, upsert: true })
 
       if (uploadError) {
         console.error(`[generate-images] アップロードエラー (${item.name}):`, uploadError.message)
