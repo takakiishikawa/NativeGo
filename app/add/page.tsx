@@ -135,6 +135,7 @@ export default function AddPage() {
       setText("")
       // Fire image generation in background (non-blocking)
       if (savedGrammars.length > 0) {
+        toast.info(`スピーキング用画像を生成中... (${savedGrammars.length}件)`, { duration: 8000 })
         fetch("/api/generate-images", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -154,6 +155,9 @@ export default function AddPage() {
         <h1 className="text-3xl font-bold">教材追加</h1>
         <p className="text-muted-foreground mt-1">
           Native Campの教材テキストを貼り付けてください
+        </p>
+        <p className="text-xs text-muted-foreground mt-0.5">
+          保存後、スピーキング練習用の画像が自動生成されます（1〜2分程度）
         </p>
       </div>
 

@@ -10,8 +10,7 @@ export default async function SpeakingPage() {
     .from("grammar")
     .select("id, name, summary, image_url, play_count, lessons!lesson_id(lesson_no)")
     .not("image_url", "is", null)
-    .gt("play_count", 0)
-    .lt("play_count", 10)
+    .or("play_count.is.null,play_count.lt.10")
     .order("created_at", { ascending: false })
 
   const items = grammars ?? []
