@@ -84,7 +84,34 @@ export default async function HomePage() {
   const allLogs = logsResult.data ?? []
   const grammars = grammarResult.data ?? []
   const expressions = expressionsResult.data ?? []
-  const rangeLogs = rangeLogsResult.data ?? []
+
+  // Fallback: if new columns don't exist yet, re-fetch without them
+  let rangeLogs: Array<{
+    practiced_at: string
+    grammar_done_count: number
+    expression_done_count: number
+    speaking_count: number
+    native_camp_count: number
+  }>
+  if (rangeLogsResult.error) {
+    const { data: fallback } = await supabase
+      .from("practice_logs")
+      .select("practiced_at, grammar_done_count, expression_done_count")
+      .gte("practiced_at", rangeStartStr)
+      .lte("practiced_at", todayStr)
+      .order("practiced_at")
+    rangeLogs = (fallback ?? []).map((l) => ({
+      ...l,
+      speaking_count: 0,
+      native_camp_count: 0,
+    }))
+  } else {
+    rangeLogs = (rangeLogsResult.data ?? []).map((l) => ({
+      ...l,
+      speaking_count: l.speaking_count ?? 0,
+      native_camp_count: l.native_camp_count ?? 0,
+    }))
+  }
   const scores = (scoresResult.data ?? []) as SpeakingScore[]
 
   // Streak + monthly days

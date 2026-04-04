@@ -38,11 +38,15 @@ export function NativeCampModal({
           <label className="text-sm font-medium">回数</label>
           <Input
             type="number"
-            min={1}
+            min={0}
             value={count}
-            onChange={(e) => setCount(Math.max(1, parseInt(e.target.value) || 1))}
+            onChange={(e) => setCount(Math.max(0, parseInt(e.target.value) || 0))}
           />
-          <p className="text-xs text-muted-foreground">自動計算：{minutes}分（回数 × 25分）</p>
+          {count === 0 ? (
+            <p className="text-xs text-muted-foreground">今日はお休み（0回として記録）</p>
+          ) : (
+            <p className="text-xs text-muted-foreground">自動計算：{minutes}分（回数 × 25分）</p>
+          )}
         </div>
         <div className="flex gap-3">
           <Button onClick={handleSave} disabled={saving} className="flex-1">

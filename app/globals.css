@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* class-based dark mode: responds to .dark on <html> */
+@variant dark (&:where(.dark, .dark *));
+
 /* ── Design System Tokens ─────────────────────────────── */
 :root {
   /* Primary (blue) */

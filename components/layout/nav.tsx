@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { cn } from "@/lib/utils"
 import {
   HomeIcon,
@@ -12,6 +12,9 @@ import {
   ArrowRightOnRectangleIcon,
   LightBulbIcon,
   PencilSquareIcon,
+  SunIcon,
+  MoonIcon,
+  ComputerDesktopIcon,
 } from "@heroicons/react/24/outline"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
@@ -25,6 +28,8 @@ const navItems = [
   { href: "/texts", label: "テキスト", icon: DocumentTextIcon },
   { href: "/list", label: "文法・フレーズ", icon: BookOpenIcon },
 ]
+
+type Theme = "auto" | "dark" | "light"
 
 function isActive(href: string, pathname: string) {
   if (href === "/") return pathname === "/"
@@ -61,13 +66,18 @@ export function Nav() {
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [displayName, setDisplayName] = useState("")
   const [avatarUrl, setAvatarUrl] = useState("")
   const [profileOpen, setProfileOpen] = useState(false)
   const [editName, setEditName] = useState("")
-  const [editAvatar, setEditAvatar] = useState("")
+  const [previewUrl, setPreviewUrl] = useState("")
+  const [pendingFile, setPendingFile] = useState<File | null>(null)
   const [saving, setSaving] = useState(false)
+  const [uploadError, setUploadError] = useState("")
+
+  const [theme, setTheme] = useState<Theme>("auto")
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -77,23 +87,86 @@ export function Nav() {
       setDisplayName(name)
       setAvatarUrl(avatar)
     })
+    const stored = (localStorage.getItem("theme") as Theme) || "auto"
+    setTheme(stored)
   }, [])
+
+  function applyTheme(t: Theme) {
+    localStorage.setItem("theme", t)
+    setTheme(t)
+    if (t === "dark") {
+      document.documentElement.classList.add("dark")
+    } else if (t === "light") {
+      document.documentElement.classList.remove("dark")
+    } else {
+      const h = parseInt(
+        new Date().toLocaleString("en-US", {
+          timeZone: "Asia/Ho_Chi_Minh",
+          hour: "numeric",
+          hour12: false,
+        })
+      )
+      document.documentElement.classList.toggle("dark", h >= 18 || h < 6)
+    }
+  }
+
+  function cycleTheme() {
+    const next: Theme = theme === "auto" ? "dark" : theme === "dark" ? "light" : "auto"
+    applyTheme(next)
+  }
+
+  const ThemeIcon =
+    theme === "dark" ? MoonIcon : theme === "light" ? SunIcon : ComputerDesktopIcon
+  const themeLabel =
+    theme === "dark" ? "ダーク" : theme === "light" ? "ライト" : "自動"
 
   function openProfile() {
     setEditName(displayName)
-    setEditAvatar(avatarUrl)
+    setPreviewUrl(avatarUrl)
+    setPendingFile(null)
+    setUploadError("")
     setProfileOpen(true)
+  }
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setPendingFile(file)
+    setPreviewUrl(URL.createObjectURL(file))
+    setUploadError("")
   }
 
   async function handleSave() {
     setSaving(true)
-    const { error } = await supabase.auth.updateUser({
-      data: { display_name: editName.trim(), avatar_url: editAvatar.trim() },
-    })
-    if (!error) {
+    setUploadError("")
+    try {
+      let finalUrl = avatarUrl
+
+      if (pendingFile) {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) throw new Error("Not logged in")
+        const ext = pendingFile.name.split(".").pop() || "jpg"
+        const path = `${user.id}/avatar.${ext}`
+        const { error: upErr } = await supabase.storage
+          .from("avatars")
+          .upload(path, pendingFile, { upsert: true })
+        if (upErr) throw upErr
+        const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(path)
+        finalUrl = urlData.publicUrl
+      }
+
+      const { error } = await supabase.auth.updateUser({
+        data: { display_name: editName.trim(), avatar_url: finalUrl },
+      })
+      if (error) throw error
+
       setDisplayName(editName.trim() || displayName)
-      setAvatarUrl(editAvatar.trim())
+      setAvatarUrl(finalUrl)
       setProfileOpen(false)
+    } catch (err: unknown) {
+      setUploadError(
+        err instanceof Error ? err.message : "保存に失敗しました"
+      )
     }
     setSaving(false)
   }
@@ -161,6 +234,15 @@ export function Nav() {
             コンセプト
           </Link>
 
+          {/* Theme toggle */}
+          <button
+            onClick={cycleTheme}
+            className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-neutral-500 hover:bg-neutral-200/60 hover:text-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-700/50 dark:hover:text-neutral-200 transition-colors"
+          >
+            <ThemeIcon className="h-5 w-5 shrink-0" />
+            {themeLabel}モード
+          </button>
+
           {/* Logout */}
           <Button
             variant="ghost"
@@ -177,11 +259,24 @@ export function Nav() {
       {/* Profile edit dialog */}
       <Dialog open={profileOpen} onClose={() => setProfileOpen(false)} title="プロフィール編集">
         <div className="space-y-4">
-          <div className="flex items-center gap-3 mb-2">
-            <Avatar url={editAvatar} name={editName || "U"} size={10} />
-            <div>
+          <div className="flex items-center gap-4">
+            <Avatar url={previewUrl} name={editName || "U"} size={14} />
+            <div className="space-y-2 flex-1">
               <p className="text-sm font-medium">{editName || "—"}</p>
-              <p className="text-xs text-muted-foreground">プレビュー</p>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleFileChange}
+              />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="text-xs text-primary hover:underline"
+              >
+                画像を変更
+              </button>
             </div>
           </div>
           <div className="space-y-1.5">
@@ -192,14 +287,9 @@ export function Nav() {
               placeholder="表示名を入力"
             />
           </div>
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium">アイコン画像URL</label>
-            <Input
-              value={editAvatar}
-              onChange={(e) => setEditAvatar(e.target.value)}
-              placeholder="https://..."
-            />
-          </div>
+          {uploadError && (
+            <p className="text-xs text-destructive">{uploadError}</p>
+          )}
           <Button onClick={handleSave} disabled={saving} className="w-full">
             {saving ? "保存中..." : "保存"}
           </Button>
