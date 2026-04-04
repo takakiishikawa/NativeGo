@@ -1,11 +1,9 @@
 import { createClient } from "@/lib/supabase/server"
 import { ReportCharts } from "@/components/report-charts"
-import type { SpeakingScore } from "@/lib/types"
-
 export default async function ReportPage() {
   const supabase = await createClient()
 
-  const [logsResult, ncLogsResult, scoresResult] = await Promise.all([
+  const [logsResult, ncLogsResult] = await Promise.all([
     supabase
       .from("practice_logs")
       .select("practiced_at, grammar_done_count, expression_done_count, speaking_count")
@@ -14,10 +12,6 @@ export default async function ReportPage() {
       .from("native_camp_logs")
       .select("logged_at, count, minutes")
       .order("logged_at"),
-    supabase
-      .from("speaking_scores")
-      .select("id, user_id, score, tested_at, created_at")
-      .order("tested_at"),
   ])
 
   const logs = (logsResult.data ?? []).map((l) => ({
@@ -33,8 +27,6 @@ export default async function ReportPage() {
     minutes: l.minutes ?? (l.count ?? 0) * 25,
   }))
 
-  const scores = (scoresResult.data ?? []) as SpeakingScore[]
-
   return (
     <div className="space-y-8 max-w-4xl">
       <div>
@@ -42,7 +34,7 @@ export default async function ReportPage() {
         <p className="text-muted-foreground mt-1">学習データの集計・推移</p>
       </div>
 
-      <ReportCharts logs={logs} ncLogs={ncLogs} scores={scores} />
+      <ReportCharts logs={logs} ncLogs={ncLogs} />
     </div>
   )
 }
