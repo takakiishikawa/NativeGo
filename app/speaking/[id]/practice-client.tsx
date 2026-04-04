@@ -86,6 +86,9 @@ export function PracticeClient({
       const data = await res.json()
       if (data.logId) {
         router.push(`/speaking/${grammarId}/result?log=${data.logId}`)
+      } else {
+        console.error("speaking-eval error:", data.error)
+        router.push("/speaking")
       }
     } catch {
       router.push("/speaking")
