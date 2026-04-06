@@ -14,11 +14,11 @@ import { ConversationLines } from "@/components/conversation-lines"
 
 function StarRating({ value }: { value: number }) {
   return (
-    <span className="flex gap-0.5">
+    <span className="flex gap-1">
       {[1, 2, 3, 4, 5].map((i) => (
         <Star
           key={i}
-          className={`h-3 w-3 ${i <= value ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground"}`}
+          className={`h-5 w-5 ${i <= value ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground"}`}
         />
       ))}
     </span>
@@ -189,9 +189,8 @@ export default function ExpressionRepeatingPage() {
           </div>
           <div className="flex items-center gap-3">
             <Button
-              variant="ghost"
+              variant="outline"
               size="sm"
-              className="text-muted-foreground text-xs"
               onClick={() => { stopSpeech(); router.push("/practice") }}
             >
               途中終了
@@ -211,10 +210,10 @@ export default function ExpressionRepeatingPage() {
               </div>
               <StarRating value={current?.frequency ?? 0} />
             </div>
-            <p className="text-lg text-muted-foreground whitespace-pre-line leading-relaxed">{current?.meaning}</p>
+            <p className="text-lg text-muted-foreground whitespace-pre-line leading-relaxed">{current?.meaning?.replace(/\\n/g, "\n")}</p>
           </CardHeader>
           <CardContent>
-            <p className="text-sm font-medium text-muted-foreground mb-3">会話例</p>
+            <p className="text-sm font-medium text-muted-foreground mb-3">会話</p>
             <ConversationLines lines={lines} currentLine={currentLine} />
             <p className="text-sm text-muted-foreground mt-4">
               場面: {current?.usage_scene}

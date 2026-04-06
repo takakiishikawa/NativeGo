@@ -107,13 +107,13 @@ function ResultContent() {
 
       {/* Total score */}
       <div className="rounded-xl border bg-card p-5 space-y-1">
-        <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">総合評価</p>
+        <p className="text-sm text-muted-foreground font-medium uppercase tracking-wide">総合評価</p>
         <TotalStars total={data.total_score} />
       </div>
 
       {/* Score breakdown */}
       <div className="rounded-xl border bg-card p-5 space-y-3">
-        <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">内訳</p>
+        <p className="text-sm text-muted-foreground font-medium uppercase tracking-wide">内訳</p>
         {SCORE_LABELS.map((label, i) => (
           <div key={i} className="flex items-center justify-between gap-3">
             <span className="text-sm text-muted-foreground flex-1">{label}</span>
@@ -126,7 +126,7 @@ function ResultContent() {
       {/* Comment */}
       {data.comment && (
         <div className="rounded-xl border bg-card p-5">
-          <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide mb-2">AIコメント</p>
+          <p className="text-sm text-muted-foreground font-medium uppercase tracking-wide mb-2">AIコメント</p>
           <p className="text-sm text-foreground leading-relaxed">{data.comment}</p>
         </div>
       )}

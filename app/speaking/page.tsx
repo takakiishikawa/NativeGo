@@ -70,7 +70,7 @@ export default async function SpeakingPage() {
                     <p className="font-semibold text-sm text-foreground leading-snug line-clamp-2">
                       {g.name}
                     </p>
-                    <p className="text-xs text-muted-foreground line-clamp-2">{g.summary}</p>
+                    <p className="text-sm text-muted-foreground line-clamp-2">{g.summary}</p>
                   </div>
                 </Card>
               </Link>

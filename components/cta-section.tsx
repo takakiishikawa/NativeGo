@@ -22,14 +22,14 @@ export function CTASection({
       <div className="grid grid-cols-2 gap-3">
         {/* 文法リピーティング */}
         <Link href="/repeating/grammar">
-          <Card className="cursor-pointer bg-card border hover:border-blue-500 dark:hover:border-blue-400 hover:shadow-md transition-all group">
-            <CardContent className="flex items-center gap-3 p-4 border-l-4 border-blue-500 dark:border-blue-400 rounded-l-md">
-              <div className="rounded-lg bg-blue-50 dark:bg-blue-900/30 p-2.5 group-hover:bg-blue-100 dark:group-hover:bg-blue-800/40 transition-colors shrink-0">
+          <Card className="cursor-pointer bg-card border hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group">
+            <CardContent className="flex items-center gap-3 p-4">
+              <div className="rounded-xl bg-blue-50 dark:bg-blue-900/30 p-3 group-hover:bg-blue-100 dark:group-hover:bg-blue-800/40 transition-colors shrink-0">
                 <BookOpen className="h-5 w-5 text-blue-600 dark:text-blue-400" />
               </div>
               <div className="min-w-0">
                 <p className="font-semibold text-sm text-foreground">文法リピーティング</p>
-                <p className="text-xs text-muted-foreground mt-0.5">
+                <p className="text-sm text-muted-foreground mt-0.5">
                   練習中 {grammarsInProgress} / 完了 {grammarDone}
                 </p>
               </div>
@@ -40,14 +40,14 @@ export function CTASection({
 
         {/* フレーズリピーティング */}
         <Link href="/repeating/expression">
-          <Card className="cursor-pointer bg-card border hover:border-green-500 dark:hover:border-green-400 hover:shadow-md transition-all group">
-            <CardContent className="flex items-center gap-3 p-4 border-l-4 border-green-500 dark:border-green-400 rounded-l-md">
-              <div className="rounded-lg bg-green-50 dark:bg-green-900/30 p-2.5 group-hover:bg-green-100 dark:group-hover:bg-green-800/40 transition-colors shrink-0">
+          <Card className="cursor-pointer bg-card border hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group">
+            <CardContent className="flex items-center gap-3 p-4">
+              <div className="rounded-xl bg-green-50 dark:bg-green-900/30 p-3 group-hover:bg-green-100 dark:group-hover:bg-green-800/40 transition-colors shrink-0">
                 <MessageSquare className="h-5 w-5 text-green-600 dark:text-green-400" />
               </div>
               <div className="min-w-0">
                 <p className="font-semibold text-sm text-foreground">フレーズリピーティング</p>
-                <p className="text-xs text-muted-foreground mt-0.5">
+                <p className="text-sm text-muted-foreground mt-0.5">
                   練習中 {expressionsInProgress} / 完了 {expressionDone}
                 </p>
               </div>
@@ -59,14 +59,14 @@ export function CTASection({
 
       {/* スピーキング */}
       <Link href="/speaking">
-        <Card className="cursor-pointer bg-card border hover:border-purple-500 dark:hover:border-purple-400 hover:shadow-md transition-all group">
-          <CardContent className="flex items-center gap-3 p-4 border-l-4 border-purple-500 dark:border-purple-400 rounded-l-md">
-            <div className="rounded-lg bg-purple-50 dark:bg-purple-900/30 p-2.5 group-hover:bg-purple-100 dark:group-hover:bg-purple-800/40 transition-colors shrink-0">
+        <Card className="cursor-pointer bg-card border hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group">
+          <CardContent className="flex items-center gap-3 p-4">
+            <div className="rounded-xl bg-purple-50 dark:bg-purple-900/30 p-3 group-hover:bg-purple-100 dark:group-hover:bg-purple-800/40 transition-colors shrink-0">
               <Mic className="h-5 w-5 text-purple-600 dark:text-purple-400" />
             </div>
             <div className="min-w-0">
               <p className="font-semibold text-sm text-foreground">スピーキング</p>
-              <p className="text-xs text-muted-foreground mt-0.5">画像を見ながら英語で説明する練習</p>
+              <p className="text-sm text-muted-foreground mt-0.5">画像を見ながら英語で説明する練習</p>
             </div>
             <ChevronRight className="h-4 w-4 text-muted-foreground ml-auto shrink-0 group-hover:text-purple-500 dark:group-hover:text-purple-400 transition-colors" />
           </CardContent>

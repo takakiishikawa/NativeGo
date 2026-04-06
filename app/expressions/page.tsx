@@ -110,12 +110,12 @@ export default function ExpressionsPage() {
             </div>
             {selected.usage_scene && (
               <div>
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">使用場面</p>
+                <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-1">使用場面</p>
                 <p className="text-sm text-muted-foreground">{selected.usage_scene}</p>
               </div>
             )}
             <div>
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">会話例</p>
+              <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-2">会話</p>
               <div className="space-y-2">
                 {selected.conversation.split("\n").filter(Boolean).map((line, i) => {
                   const isA = line.startsWith("A:")

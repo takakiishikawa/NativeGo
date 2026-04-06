@@ -160,67 +160,70 @@ export function PracticeClient({
   }
 
   return (
-    <div className="max-w-lg mx-auto space-y-5">
-      {/* Image - full bleed, no padding */}
-      <div className="rounded-xl overflow-hidden aspect-[4/3]">
+    <div className="space-y-5">
+      {/* Image - wider */}
+      <div className="rounded-xl overflow-hidden aspect-[4/3] max-w-2xl mx-auto">
         <img src={imageUrl} alt={grammarName} className="w-full h-full object-cover" />
       </div>
 
-      {/* Grammar hint */}
-      <div className="rounded-lg border bg-muted/40 px-4 py-3 space-y-0.5">
-        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">使いたい文法</p>
-        <p className="text-sm font-semibold">{grammarName}</p>
-        <p className="text-xs text-muted-foreground">{grammarSummary}</p>
-      </div>
-
-      {/* Timer + controls */}
-      {state === "idle" && (
-        <div className="flex flex-col items-center gap-4 pt-1">
-          <p className="text-sm text-center text-muted-foreground leading-relaxed">
-            この文法を使いながら、画像の状況を英語で説明してみましょう
-          </p>
-          <Button size="lg" onClick={startRecording} className="gap-2 px-8">
-            🎤 録音スタート
-          </Button>
+      <div className="max-w-lg mx-auto space-y-5">
+        {/* Grammar hint */}
+        <div className="rounded-lg border bg-muted/40 px-4 py-3 space-y-0.5">
+          <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">使いたい文法</p>
+          <p className="text-base font-semibold">{grammarName}</p>
+          <p className="text-sm text-muted-foreground">{grammarSummary}</p>
         </div>
-      )}
 
-      {state === "recording" && (
-        <div className="flex flex-col items-center gap-4">
-          <CountdownRing remaining={remaining} total={DURATION} />
-          <div className="flex items-center gap-2">
-            <span className="inline-block w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
-            <span className="text-sm font-medium text-red-500">録音中</span>
-          </div>
-          {transcript && (
-            <p className="text-xs text-muted-foreground text-center max-w-xs line-clamp-3">
-              {transcript}
+        {/* Timer + controls */}
+        {state === "idle" && (
+          <div className="flex flex-col items-center gap-4 pt-1">
+            <p className="text-base text-center text-muted-foreground leading-relaxed">
+              この文法を使いながら、画像の状況を英語で説明してみましょう
             </p>
-          )}
-          <Button variant="outline" size="lg" onClick={stopEarly} className="gap-2 px-8">
-            停止して評価
-          </Button>
-        </div>
-      )}
+            <Button size="lg" onClick={startRecording} className="gap-2 px-8">
+              🎤 録音スタート
+            </Button>
+          </div>
+        )}
 
-      {state === "evaluating" && (
-        <div className="flex flex-col items-center gap-3 pt-4">
-          <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-          <p className="text-sm text-muted-foreground">AIが評価中...</p>
-        </div>
-      )}
+        {state === "recording" && (
+          <div className="flex flex-col items-center gap-4">
+            <CountdownRing remaining={remaining} total={DURATION} />
+            <div className="flex items-center gap-2">
+              <span className="inline-block w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
+              <span className="text-sm font-medium text-red-500">録音中</span>
+            </div>
+            {transcript && (
+              <p className="text-sm text-muted-foreground text-center max-w-xs line-clamp-3">
+                {transcript}
+              </p>
+            )}
+            <Button variant="outline" size="lg" onClick={stopEarly} className="gap-2 px-8">
+              停止して評価
+            </Button>
+          </div>
+        )}
 
-      {/* Quit link */}
-      {state !== "evaluating" && (
-        <div className="flex justify-center">
-          <button
-            onClick={() => router.push("/speaking")}
-            className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-          >
-            途中終了
-          </button>
-        </div>
-      )}
+        {state === "evaluating" && (
+          <div className="flex flex-col items-center gap-3 pt-4">
+            <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+            <p className="text-sm text-muted-foreground">AIが評価中...</p>
+          </div>
+        )}
+
+        {/* Quit button */}
+        {state !== "evaluating" && (
+          <div className="flex justify-center">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => router.push("/speaking")}
+            >
+              途中終了
+            </Button>
+          </div>
+        )}
+      </div>
     </div>
   )
 }

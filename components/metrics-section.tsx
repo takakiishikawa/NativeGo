@@ -47,7 +47,7 @@ export function MetricsSection({
               <span className="text-4xl font-bold">{weeklyRepeating}</span>
               <span className="text-base text-muted-foreground">回</span>
             </div>
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-sm text-muted-foreground mt-1">
               文法 {weeklyGrammar} / フレーズ {weeklyExpression}
             </p>
           </CardContent>
@@ -89,7 +89,7 @@ export function MetricsSection({
               <span className="text-4xl font-bold">{weeklyNativeCampCount}</span>
               <span className="text-base text-muted-foreground">回</span>
             </div>
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-sm text-muted-foreground mt-1">
               {weeklyNativeCampCount * 25}分
             </p>
           </CardContent>
@@ -120,7 +120,7 @@ export function MetricsSection({
                 </div>
                 {scoreDiff !== null && (
                   <p
-                    className={`text-xs mt-1 flex items-center gap-0.5 ${
+                    className={`text-sm mt-1 flex items-center gap-0.5 ${
                       scoreDiff >= 0 ? "text-[#10B981]" : "text-destructive"
                     }`}
                   >

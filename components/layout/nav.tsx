@@ -171,12 +171,12 @@ export function Nav() {
     <>
       <nav className="flex h-screen w-[220px] flex-col border-r bg-neutral-100 dark:bg-[#1E293B] px-3 py-5 shrink-0">
         <div className="mb-7 px-2">
-          <div className="flex items-center gap-2">
+          <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
             <div className="rounded-lg bg-primary p-1.5">
               <ArrowPathRoundedSquareIcon className="h-4 w-4 text-white" />
             </div>
             <h1 className="text-lg font-bold tracking-tight">NativeGo</h1>
-          </div>
+          </Link>
         </div>
 
         <div className="flex flex-1 flex-col gap-0.5">

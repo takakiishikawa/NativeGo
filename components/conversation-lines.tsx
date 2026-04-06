@@ -6,28 +6,38 @@ export function ConversationLines({
   currentLine: number
 }) {
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
       {lines.map((line, i) => {
         const isA = line.startsWith("A:")
-        const isB = line.startsWith("B:")
         const isActive = i === currentLine
+        const text = line.replace(/^[AB]:\s*/, "")
+        const speaker = isA ? "A" : "B"
+
         return (
-          <div
-            key={i}
-            className={[
-              "rounded-md px-4 py-2.5 text-lg font-medium leading-relaxed transition-colors border-l-[3px]",
-              isActive
-                ? isA
-                  ? "bg-blue-50 text-blue-700 border-l-blue-600 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-400"
-                  : "bg-amber-50 text-amber-700 border-l-amber-500 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-400"
-                : isA
-                ? "bg-neutral-50 text-blue-700 border-l-transparent dark:bg-neutral-800 dark:text-blue-300"
-                : isB
-                ? "bg-neutral-50 text-neutral-600 border-l-transparent dark:bg-neutral-800 dark:text-neutral-400"
-                : "bg-neutral-50 text-neutral-600 border-l-transparent dark:bg-neutral-800",
-            ].join(" ")}
-          >
-            {line}
+          <div key={i} className={`flex items-end gap-2.5 ${isA ? "" : "flex-row-reverse"}`}>
+            <div
+              className={`
+                shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold
+                ${isA
+                  ? "bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300"
+                  : "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300"}
+              `}
+            >
+              {speaker}
+            </div>
+            <div
+              className={[
+                "max-w-[80%] rounded-2xl px-4 py-2.5 text-base leading-relaxed transition-all duration-200",
+                isA ? "rounded-bl-sm" : "rounded-br-sm",
+                isActive
+                  ? isA
+                    ? "bg-blue-500 text-white shadow-sm"
+                    : "bg-emerald-500 text-white shadow-sm"
+                  : "bg-neutral-100 text-neutral-800 dark:bg-neutral-800 dark:text-neutral-200",
+              ].join(" ")}
+            >
+              {text}
+            </div>
           </div>
         )
       })}
