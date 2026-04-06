@@ -92,10 +92,10 @@ function GrammarPreview({ item }: { item: ExtractedGrammar }) {
 
 function ExpressionPreview({ item }: { item: ExtractedExpression }) {
   return (
-    <Card className="border-green-200">
+    <Card className="border-teal-200">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-sm text-green-700">{item.expression}</CardTitle>
+          <CardTitle className="text-sm text-teal-700">{item.expression}</CardTitle>
           <div className="flex items-center gap-2">
             <Badge variant="outline" className="text-xs">{item.category}</Badge>
             <StarRating value={item.frequency} />

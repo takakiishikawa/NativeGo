@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { LineChart, type LineChartPoint, type LineChartSeries } from "@/components/line-chart"
+import { COLORS } from "@/lib/colors"
 
 type PracticeLog = {
   practiced_at: string
@@ -100,14 +101,14 @@ function buildAllTimeData(logs: PracticeLog[], ncLogs: NcLog[]): {
 }
 
 const repeatingSeries: LineChartSeries[] = [
-  { key: "grammar", label: "文法", color: "#3B82F6" },
-  { key: "expression", label: "フレーズ", color: "#10B981" },
+  { key: "grammar",    label: "文法",     color: COLORS.grammar.main },
+  { key: "expression", label: "フレーズ", color: COLORS.phrase.main },
 ]
 const speakingSeries: LineChartSeries[] = [
-  { key: "speaking", label: "スピーキング", color: "#3B82F6" },
+  { key: "speaking", label: "スピーキング", color: COLORS.speaking.main },
 ]
 const ncSeries: LineChartSeries[] = [
-  { key: "minutes", label: "学習時間", color: "#10B981" },
+  { key: "minutes", label: "学習時間", color: COLORS.grammar.main },
 ]
 
 export function ReportCharts({

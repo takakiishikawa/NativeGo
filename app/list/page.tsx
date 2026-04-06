@@ -71,7 +71,7 @@ function GrammarTab() {
     <div className="space-y-3">
       <div className="flex items-center gap-3">
         <span className="text-sm text-muted-foreground">全 {items.length} 件</span>
-        <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400">
+        <span className="inline-flex items-center gap-1 text-sm font-medium px-2 py-0.5 rounded-full bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400">
           完了 {items.filter((i) => i.play_count >= 10).length}
         </span>
       </div>
@@ -160,7 +160,7 @@ function PhraseTab() {
     <div className="space-y-3">
       <div className="flex items-center gap-3">
         <span className="text-sm text-muted-foreground">全 {items.length} 件</span>
-        <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400">
+        <span className="inline-flex items-center gap-1 text-sm font-medium px-2 py-0.5 rounded-full bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400">
           完了 {items.filter((i) => i.play_count >= 10).length}
         </span>
       </div>

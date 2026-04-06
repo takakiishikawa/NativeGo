@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { COLORS } from "@/lib/colors"
 
 type DataPoint = { date: string; grammar: number; expression: number }
 
@@ -75,7 +76,7 @@ export function PracticeChart({ data }: { data: DataPoint[] }) {
                 文法 {hovered ? hovered.grammar : totalGrammar}
               </span>
               <span className="flex items-center gap-1.5 text-teal-700 font-medium">
-                <span className="inline-block w-2.5 h-2.5 rounded-full bg-[#0D9488]" />
+                <span className="inline-block w-2.5 h-2.5 rounded-full" style={{ backgroundColor: COLORS.phrase.main }} />
                 フレーズ {hovered ? hovered.expression : totalExpression}
               </span>
             </div>
@@ -96,12 +97,12 @@ export function PracticeChart({ data }: { data: DataPoint[] }) {
           >
             <defs>
               <linearGradient id="gGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#2563EB" stopOpacity="0.3" />
-                <stop offset="100%" stopColor="#2563EB" stopOpacity="0.02" />
+                <stop offset="0%" stopColor={COLORS.grammar.main} stopOpacity="0.3" />
+                <stop offset="100%" stopColor={COLORS.grammar.main} stopOpacity="0.02" />
               </linearGradient>
               <linearGradient id="eGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#0D9488" stopOpacity="0.3" />
-                <stop offset="100%" stopColor="#0D9488" stopOpacity="0.02" />
+                <stop offset="0%" stopColor={COLORS.phrase.main} stopOpacity="0.3" />
+                <stop offset="100%" stopColor={COLORS.phrase.main} stopOpacity="0.02" />
               </linearGradient>
             </defs>
 
@@ -120,9 +121,9 @@ export function PracticeChart({ data }: { data: DataPoint[] }) {
             <path d={eArea} fill="url(#eGrad)" />
 
             {/* Lines */}
-            <path d={gLine} fill="none" stroke="#2563EB" strokeWidth="2.5"
+            <path d={gLine} fill="none" stroke={COLORS.grammar.main} strokeWidth="2.5"
               strokeLinecap="round" strokeLinejoin="round" />
-            <path d={eLine} fill="none" stroke="#0D9488" strokeWidth="2.5"
+            <path d={eLine} fill="none" stroke={COLORS.phrase.main} strokeWidth="2.5"
               strokeLinecap="round" strokeLinejoin="round" />
 
             {/* Hover vertical line + dots */}
@@ -134,9 +135,9 @@ export function PracticeChart({ data }: { data: DataPoint[] }) {
                   stroke="gray" strokeOpacity="0.25" strokeWidth="1" strokeDasharray="3 2"
                 />
                 <circle cx={x(hoveredIdx)} cy={y(data[hoveredIdx].grammar)}
-                  r="5" fill="#2563EB" stroke="white" strokeWidth="2" />
+                  r="5" fill={COLORS.grammar.main} stroke="white" strokeWidth="2" />
                 <circle cx={x(hoveredIdx)} cy={y(data[hoveredIdx].expression)}
-                  r="5" fill="#0D9488" stroke="white" strokeWidth="2" />
+                  r="5" fill={COLORS.phrase.main} stroke="white" strokeWidth="2" />
               </>
             )}
 

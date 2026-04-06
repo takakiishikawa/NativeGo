@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { NativeCampModal } from "@/components/native-camp-modal"
 import { SpeakingScoreModal } from "@/components/speaking-score-modal"
 import { PencilSquareIcon } from "@heroicons/react/24/outline"
-import { ArrowUp, ArrowDown } from "lucide-react"
+import { ArrowUp, ArrowDown, TrendingUp, TrendingDown } from "lucide-react"
 import type { SpeakingScore } from "@/lib/types"
 
 interface Props {
@@ -14,9 +14,26 @@ interface Props {
   weeklyExpression: number
   weeklySpeaking: number
   weeklyNativeCampCount: number
+  repeatingDiff: number | null
+  speakingDiff: number | null
+  ncCountDiff: number | null
   latestScore: number | null
   scoreDiff: number | null
   initialScores: SpeakingScore[]
+}
+
+function DiffBadge({ diff }: { diff: number | null }) {
+  if (diff === null) return null
+  if (diff === 0) return (
+    <span className="text-sm text-muted-foreground">前7日比 ±0</span>
+  )
+  const positive = diff > 0
+  return (
+    <span className={`flex items-center gap-0.5 text-sm font-medium ${positive ? "text-[#16A34A]" : "text-destructive"}`}>
+      {positive ? <TrendingUp className="h-3.5 w-3.5" /> : <TrendingDown className="h-3.5 w-3.5" />}
+      前7日比 {positive ? "+" : ""}{diff}
+    </span>
+  )
 }
 
 export function MetricsSection({
@@ -25,6 +42,9 @@ export function MetricsSection({
   weeklyExpression,
   weeklySpeaking,
   weeklyNativeCampCount,
+  repeatingDiff,
+  speakingDiff,
+  ncCountDiff,
   latestScore,
   scoreDiff,
   initialScores,
@@ -50,6 +70,9 @@ export function MetricsSection({
             <p className="text-sm text-muted-foreground mt-1">
               文法 {weeklyGrammar} / フレーズ {weeklyExpression}
             </p>
+            <div className="mt-1.5">
+              <DiffBadge diff={repeatingDiff} />
+            </div>
           </CardContent>
         </Card>
 
@@ -64,6 +87,9 @@ export function MetricsSection({
             <div className="flex items-baseline gap-1">
               <span className="text-4xl font-bold">{weeklySpeaking}</span>
               <span className="text-base text-muted-foreground">回</span>
+            </div>
+            <div className="mt-1.5">
+              <DiffBadge diff={speakingDiff} />
             </div>
           </CardContent>
         </Card>
@@ -92,6 +118,9 @@ export function MetricsSection({
             <p className="text-sm text-muted-foreground mt-1">
               {weeklyNativeCampCount * 25}分
             </p>
+            <div className="mt-1.5">
+              <DiffBadge diff={ncCountDiff} />
+            </div>
           </CardContent>
         </Card>
 
@@ -125,9 +154,9 @@ export function MetricsSection({
                     }`}
                   >
                     {scoreDiff >= 0 ? (
-                      <ArrowUp className="h-3 w-3" />
+                      <ArrowUp className="h-3.5 w-3.5" />
                     ) : (
-                      <ArrowDown className="h-3 w-3" />
+                      <ArrowDown className="h-3.5 w-3.5" />
                     )}
                     前回比 {scoreDiff >= 0 ? "+" : ""}
                     {scoreDiff}点

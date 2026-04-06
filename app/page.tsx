@@ -4,16 +4,8 @@ import { MetricsSection } from "@/components/metrics-section"
 import { LineChart, type LineChartPoint } from "@/components/line-chart"
 import { DashboardAutoCheck } from "@/components/dashboard-auto-check"
 import { StreakPopup } from "@/components/streak-popup"
+import { COLORS } from "@/lib/colors"
 import type { SpeakingScore } from "@/lib/types"
-
-function getWeekMonday(date: Date): Date {
-  const d = new Date(date)
-  const day = d.getDay()
-  const diff = day === 0 ? -6 : 1 - day
-  d.setDate(d.getDate() + diff)
-  d.setHours(0, 0, 0, 0)
-  return d
-}
 
 function calculateStreak(dates: string[]): number {
   if (dates.length === 0) return 0
@@ -26,9 +18,7 @@ function calculateStreak(dates: string[]): number {
   for (const date of sorted) {
     if (date === current) {
       streak++
-      current = new Date(new Date(current).getTime() - 86400000)
-        .toISOString()
-        .split("T")[0]
+      current = new Date(new Date(current).getTime() - 86400000).toISOString().split("T")[0]
     } else {
       break
     }
@@ -45,20 +35,22 @@ export default async function HomePage() {
 
   const today = new Date()
   const todayStr = today.toISOString().split("T")[0]
-  const thisMonday = getWeekMonday(today)
-  const thisMondayStr = thisMonday.toISOString().split("T")[0]
 
-  // 7 day buckets for charts (today and 6 days prior)
+  // Current 7-day window: [today-6 … today]
   const days = Array.from({ length: 7 }, (_, i) => {
     const d = new Date(today)
     d.setDate(d.getDate() - (6 - i))
     const str = d.toISOString().split("T")[0]
     return { str, label: fmtDate(d) }
   })
+  const rangeStartStr = days[0].str // today − 6
 
-  const rangeStartStr = days[0].str
+  // Previous 7-day window start: today − 13
+  const prev14Start = new Date(today)
+  prev14Start.setDate(prev14Start.getDate() - 13)
+  const prev14StartStr = prev14Start.toISOString().split("T")[0]
 
-  const [logsResult, grammarResult, expressionsResult, rangeLogsResult, scoresResult, ncLogsResult] =
+  const [logsResult, grammarResult, expressionsResult, allRangeLogsResult, scoresResult, allNcLogsResult] =
     await Promise.all([
       supabase.from("practice_logs").select("practiced_at"),
       supabase.from("grammar").select("play_count"),
@@ -66,7 +58,7 @@ export default async function HomePage() {
       supabase
         .from("practice_logs")
         .select("practiced_at, grammar_done_count, expression_done_count, speaking_count")
-        .gte("practiced_at", rangeStartStr)
+        .gte("practiced_at", prev14StartStr)
         .lte("practiced_at", todayStr)
         .order("practiced_at"),
       supabase
@@ -76,7 +68,7 @@ export default async function HomePage() {
       supabase
         .from("native_camp_logs")
         .select("logged_at, count, minutes")
-        .gte("logged_at", rangeStartStr)
+        .gte("logged_at", prev14StartStr)
         .lte("logged_at", todayStr),
     ])
 
@@ -84,57 +76,73 @@ export default async function HomePage() {
   const grammars = grammarResult.data ?? []
   const expressions = expressionsResult.data ?? []
 
-  // Fallback: if new columns don't exist yet, re-fetch without them
-  let rangeLogs: Array<{
+  type RangeLog = {
     practiced_at: string
     grammar_done_count: number
     expression_done_count: number
     speaking_count: number
-  }>
-  if (rangeLogsResult.error) {
+  }
+
+  let allRangeLogs: RangeLog[]
+  if (allRangeLogsResult.error) {
     const { data: fallback } = await supabase
       .from("practice_logs")
       .select("practiced_at, grammar_done_count, expression_done_count")
-      .gte("practiced_at", rangeStartStr)
+      .gte("practiced_at", prev14StartStr)
       .lte("practiced_at", todayStr)
       .order("practiced_at")
-    rangeLogs = (fallback ?? []).map((l) => ({
-      ...l,
-      speaking_count: 0,
-    }))
+    allRangeLogs = (fallback ?? []).map((l) => ({ ...l, speaking_count: 0 }))
   } else {
-    rangeLogs = (rangeLogsResult.data ?? []).map((l) => ({
+    allRangeLogs = (allRangeLogsResult.data ?? []).map((l) => ({
       ...l,
       speaking_count: l.speaking_count ?? 0,
     }))
   }
+
+  // Split into current 7 days and previous 7 days
+  const rangeLogs = allRangeLogs.filter((l) => l.practiced_at >= rangeStartStr)
+  const prevRangeLogs = allRangeLogs.filter((l) => l.practiced_at < rangeStartStr)
+
   const scores = (scoresResult.data ?? []) as SpeakingScore[]
 
-  // NC logs: aggregate by date
-  const ncLogs = ncLogsResult.data ?? []
+  // NC logs: split into curr / prev 7 days
+  const allNcLogs = allNcLogsResult.data ?? []
   const ncByDate = new Map<string, number>()
-  for (const nc of ncLogs) {
-    const prev = ncByDate.get(nc.logged_at) ?? 0
-    ncByDate.set(nc.logged_at, prev + (nc.count ?? 0))
+  const prevNcByDate = new Map<string, number>()
+  for (const nc of allNcLogs) {
+    const target = nc.logged_at >= rangeStartStr ? ncByDate : prevNcByDate
+    target.set(nc.logged_at, (target.get(nc.logged_at) ?? 0) + (nc.count ?? 0))
   }
 
-  // Streak + monthly days
+  // Streak
   const streak = calculateStreak(allLogs.map((l) => l.practiced_at))
-  const thisMonthStr = today.toISOString().slice(0, 7)
-  const monthlyDays = allLogs.filter((l) => l.practiced_at.startsWith(thisMonthStr)).length
 
-  // Grammar / expression counts
+  // Grammar / expression progress counts
   const grammarsInProgress = grammars.filter((g) => g.play_count > 0 && g.play_count < 10).length
   const grammarDone = grammars.filter((g) => g.play_count >= 10).length
   const expressionsInProgress = expressions.filter((e) => e.play_count > 0 && e.play_count < 10).length
   const expressionDone = expressions.filter((e) => e.play_count >= 10).length
 
-  // Last 7 days metrics (rangeLogs already covers rangeStartStr–todayStr)
-  const weeklyGrammar = rangeLogs.reduce((s, l) => s + (l.grammar_done_count ?? 0), 0)
-  const weeklyExpression = rangeLogs.reduce((s, l) => s + (l.expression_done_count ?? 0), 0)
+  // Current 7-day metrics
+  const weeklyGrammar = rangeLogs.reduce((s, l) => s + l.grammar_done_count, 0)
+  const weeklyExpression = rangeLogs.reduce((s, l) => s + l.expression_done_count, 0)
   const weeklyRepeating = weeklyGrammar + weeklyExpression
-  const weeklySpeaking = rangeLogs.reduce((s, l) => s + (l.speaking_count ?? 0), 0)
-  const weeklyNativeCampCount = [...ncByDate.values()].reduce((s, count) => s + count, 0)
+  const weeklySpeaking = rangeLogs.reduce((s, l) => s + l.speaking_count, 0)
+  const weeklyNativeCampCount = [...ncByDate.values()].reduce((s, c) => s + c, 0)
+
+  // Previous 7-day metrics
+  const prevWeeklyGrammar = prevRangeLogs.reduce((s, l) => s + l.grammar_done_count, 0)
+  const prevWeeklyExpression = prevRangeLogs.reduce((s, l) => s + l.expression_done_count, 0)
+  const prevWeeklyRepeating = prevWeeklyGrammar + prevWeeklyExpression
+  const prevWeeklySpeaking = prevRangeLogs.reduce((s, l) => s + l.speaking_count, 0)
+  const prevNativeCampCount = [...prevNcByDate.values()].reduce((s, c) => s + c, 0)
+
+  // Diffs (null if no prior data at all)
+  const hasPrevData = allRangeLogs.some((l) => l.practiced_at < rangeStartStr) ||
+    allNcLogs.some((nc) => nc.logged_at < rangeStartStr)
+  const repeatingDiff = hasPrevData ? weeklyRepeating - prevWeeklyRepeating : null
+  const speakingDiff  = hasPrevData ? weeklySpeaking  - prevWeeklySpeaking  : null
+  const ncCountDiff   = hasPrevData ? weeklyNativeCampCount - prevNativeCampCount : null
 
   // Speaking score metrics
   const sortedScores = [...scores].sort((a, b) => b.tested_at.localeCompare(a.tested_at))
@@ -144,36 +152,27 @@ export default async function HomePage() {
   // Today's native camp check for auto-modal
   const hasNativeCampToday = (ncByDate.get(todayStr) ?? 0) > 0
 
-  // Chart: daily repeating breakdown (7 days)
+  // Charts (7 days)
   const logMap = new Map(rangeLogs.map((l) => [l.practiced_at, l]))
+
   const repeatingChartData: LineChartPoint[] = days.map(({ str, label }) => {
     const l = logMap.get(str)
-    return {
-      label,
-      grammar: l?.grammar_done_count ?? 0,
-      expression: l?.expression_done_count ?? 0,
-    }
+    return { label, grammar: l?.grammar_done_count ?? 0, expression: l?.expression_done_count ?? 0 }
   })
 
-  // Chart: daily native camp minutes (7 days)
-  const ncChartData: LineChartPoint[] = days.map(({ str, label }) => ({
-    label,
-    minutes: (ncByDate.get(str) ?? 0) * 25,
-  }))
-
-  // Chart: daily speaking count (7 days)
   const speakingChartData: LineChartPoint[] = days.map(({ str, label }) => {
     const l = logMap.get(str)
     return { label, count: l?.speaking_count ?? 0 }
   })
 
-  // Chart: speaking score per test date
+  const ncChartData: LineChartPoint[] = days.map(({ str, label }) => ({
+    label,
+    minutes: (ncByDate.get(str) ?? 0) * 25,
+  }))
+
   const scoreChartData: LineChartPoint[] = [...scores]
     .sort((a, b) => a.tested_at.localeCompare(b.tested_at))
-    .map((s) => {
-      const d = new Date(s.tested_at)
-      return { label: fmtDate(d), score: s.score }
-    })
+    .map((s) => { const d = new Date(s.tested_at); return { label: fmtDate(d), score: s.score } })
 
   return (
     <div className="space-y-8 max-w-4xl">
@@ -208,6 +207,9 @@ export default async function HomePage() {
           weeklyExpression={weeklyExpression}
           weeklySpeaking={weeklySpeaking}
           weeklyNativeCampCount={weeklyNativeCampCount}
+          repeatingDiff={repeatingDiff}
+          speakingDiff={speakingDiff}
+          ncCountDiff={ncCountDiff}
           latestScore={latestScore}
           scoreDiff={scoreDiff}
           initialScores={scores}
@@ -216,27 +218,27 @@ export default async function HomePage() {
           <LineChart
             title="リピーティング（7日間）"
             series={[
-              { key: "grammar", label: "文法", color: "#2563EB" },
-              { key: "expression", label: "フレーズ", color: "#0D9488" },
+              { key: "grammar",    label: "文法",     color: COLORS.grammar.main },
+              { key: "expression", label: "フレーズ", color: COLORS.phrase.main },
             ]}
             data={repeatingChartData}
             unit="回"
           />
           <LineChart
             title="スピーキング（7日間）"
-            series={[{ key: "count", label: "練習回数", color: "#D97706" }]}
+            series={[{ key: "count", label: "練習回数", color: COLORS.speaking.main }]}
             data={speakingChartData}
             unit="回"
           />
           <LineChart
             title="Native Camp（7日間）"
-            series={[{ key: "minutes", label: "学習時間", color: "#3B82F6" }]}
+            series={[{ key: "minutes", label: "学習時間", color: COLORS.grammar.main }]}
             data={ncChartData}
             unit="分"
           />
           <LineChart
             title="NC AI Speaking Test スコア"
-            series={[{ key: "score", label: "スコア", color: "#10B981" }]}
+            series={[{ key: "score", label: "スコア", color: COLORS.speaking.main }]}
             data={scoreChartData}
             unit="点"
             emptyText="スコアを記録するとグラフが表示されます"
