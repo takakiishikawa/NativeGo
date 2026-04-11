@@ -18,8 +18,7 @@ export default async function SpeakingPage() {
       .from("grammar")
       .select("id, name")
       .is("image_url", null)
-      .order("created_at", { ascending: false })
-      .limit(20),
+      .order("created_at", { ascending: false }),
   ])
 
   const items = grammars ?? []

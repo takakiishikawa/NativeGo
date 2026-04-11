@@ -50,10 +50,10 @@ export default async function HomePage() {
   prev14Start.setDate(prev14Start.getDate() - 13)
   const prev14StartStr = prev14Start.toISOString().split("T")[0]
 
-  const [logsResult, grammarResult, expressionsResult, allRangeLogsResult, scoresResult, allNcLogsResult] =
+  const [logsResult, grammarResult, expressionsResult, allRangeLogsResult, scoresResult, allNcLogsResult, speakingLogsResult] =
     await Promise.all([
       supabase.from("practice_logs").select("practiced_at"),
-      supabase.from("grammar").select("play_count, image_url"),
+      supabase.from("grammar").select("id, play_count, image_url"),
       supabase.from("expressions").select("play_count"),
       supabase
         .from("practice_logs")
@@ -70,6 +70,7 @@ export default async function HomePage() {
         .select("logged_at, count, minutes")
         .gte("logged_at", prev14StartStr)
         .lte("logged_at", todayStr),
+      supabase.from("speaking_logs").select("grammar_id"),
     ])
 
   const allLogs = logsResult.data ?? []
@@ -123,9 +124,13 @@ export default async function HomePage() {
   const expressionsInProgress = expressions.filter((e) => e.play_count > 0 && e.play_count < 10).length
   const expressionDone = expressions.filter((e) => e.play_count >= 10).length
 
-  // Speaking progress: 練習中 = has image + play_count < 10; 完了 = has image + play_count >= 10
-  const speakingInProgress = grammars.filter((g) => g.image_url && (g.play_count ?? 0) < 10).length
-  const speakingDone = grammars.filter((g) => g.image_url && (g.play_count ?? 0) >= 10).length
+  // Speaking progress: count speaking_logs per grammar (RLS filters to current user)
+  const speakingLogCounts = new Map<string, number>()
+  for (const log of speakingLogsResult.data ?? []) {
+    speakingLogCounts.set(log.grammar_id, (speakingLogCounts.get(log.grammar_id) ?? 0) + 1)
+  }
+  const speakingInProgress = grammars.filter((g) => g.image_url && (speakingLogCounts.get(g.id) ?? 0) < 3).length
+  const speakingDone = grammars.filter((g) => g.image_url && (speakingLogCounts.get(g.id) ?? 0) >= 3).length
 
   // Current 7-day metrics
   const weeklyGrammar = rangeLogs.reduce((s, l) => s + l.grammar_done_count, 0)
