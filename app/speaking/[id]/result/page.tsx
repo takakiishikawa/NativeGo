@@ -97,19 +97,34 @@ function ResultContent() {
 
   async function goToNext() {
     setNextLoading(true)
-    const { data: next } = await supabase
+
+    // Get current grammar's created_at to find the next item in list order
+    const { data: curr } = await supabase
       .from("grammar")
-      .select("id")
-      .not("image_url", "is", null)
-      .or("play_count.is.null,play_count.lt.10")
-      .neq("id", grammarId)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle()
+      .select("created_at")
+      .eq("id", grammarId)
+      .single()
+
+    let next: { id: string } | null = null
+
+    if (curr) {
+      // List is ordered by created_at DESC, so "next" = earlier created_at
+      const { data } = await supabase
+        .from("grammar")
+        .select("id")
+        .not("image_url", "is", null)
+        .or("play_count.is.null,play_count.lt.10")
+        .lt("created_at", curr.created_at)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle()
+      next = data
+    }
 
     if (next?.id) {
       router.push(`/speaking/${next.id}`)
     } else {
+      // Reached the end of the list → go back to speaking list
       router.push("/speaking")
     }
   }

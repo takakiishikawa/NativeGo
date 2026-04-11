@@ -50,7 +50,7 @@ export default async function HomePage() {
   prev14Start.setDate(prev14Start.getDate() - 13)
   const prev14StartStr = prev14Start.toISOString().split("T")[0]
 
-  const [logsResult, grammarResult, expressionsResult, allRangeLogsResult, scoresResult, allNcLogsResult] =
+  const [logsResult, grammarResult, expressionsResult, allRangeLogsResult, scoresResult, allNcLogsResult, speakingLogsResult] =
     await Promise.all([
       supabase.from("practice_logs").select("practiced_at"),
       supabase.from("grammar").select("play_count"),
@@ -70,6 +70,8 @@ export default async function HomePage() {
         .select("logged_at, count, minutes")
         .gte("logged_at", prev14StartStr)
         .lte("logged_at", todayStr),
+      // speaking_logs: count per grammar to derive in-progress / done
+      supabase.from("speaking_logs").select("grammar_id"),
     ])
 
   const allLogs = logsResult.data ?? []
@@ -122,6 +124,14 @@ export default async function HomePage() {
   const grammarDone = grammars.filter((g) => g.play_count >= 10).length
   const expressionsInProgress = expressions.filter((e) => e.play_count > 0 && e.play_count < 10).length
   const expressionDone = expressions.filter((e) => e.play_count >= 10).length
+
+  // Speaking progress counts (based on speaking_logs per grammar)
+  const speakingCountByGrammar = new Map<string, number>()
+  for (const log of speakingLogsResult.data ?? []) {
+    speakingCountByGrammar.set(log.grammar_id, (speakingCountByGrammar.get(log.grammar_id) ?? 0) + 1)
+  }
+  const speakingInProgress = [...speakingCountByGrammar.values()].filter((c) => c > 0 && c < 3).length
+  const speakingDone = [...speakingCountByGrammar.values()].filter((c) => c >= 3).length
 
   // Current 7-day metrics
   const weeklyGrammar = rangeLogs.reduce((s, l) => s + l.grammar_done_count, 0)
@@ -193,6 +203,8 @@ export default async function HomePage() {
           expressionsInProgress={expressionsInProgress}
           grammarDone={grammarDone}
           expressionDone={expressionDone}
+          speakingInProgress={speakingInProgress}
+          speakingDone={speakingDone}
         />
       </div>
 

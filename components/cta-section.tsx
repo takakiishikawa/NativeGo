@@ -9,6 +9,8 @@ interface Props {
   expressionsInProgress: number
   grammarDone: number
   expressionDone: number
+  speakingInProgress: number
+  speakingDone: number
 }
 
 export function CTASection({
@@ -16,6 +18,8 @@ export function CTASection({
   expressionsInProgress,
   grammarDone,
   expressionDone,
+  speakingInProgress,
+  speakingDone,
 }: Props) {
   return (
     <div className="space-y-3">
@@ -66,7 +70,9 @@ export function CTASection({
             </div>
             <div className="min-w-0">
               <p className="font-semibold text-base text-foreground">スピーキング</p>
-              <p className="text-sm text-muted-foreground mt-0.5">画像を見ながら英語で説明する練習</p>
+              <p className="text-sm text-muted-foreground mt-0.5">
+                練習中 {speakingInProgress} / 完了 {speakingDone}
+              </p>
             </div>
             <ChevronRight className="h-4 w-4 text-muted-foreground ml-auto shrink-0 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors" />
           </CardContent>
