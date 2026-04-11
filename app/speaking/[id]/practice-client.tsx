@@ -175,17 +175,17 @@ export function PracticeClient({
   }
 
   return (
-    <div className="space-y-4">
-      {/* Image – cropped to fixed height; scale-[1.12] trims the white borders generated images often have */}
-      <div className="-mx-6 -mt-6 overflow-hidden h-40">
+    <div className="space-y-3">
+      {/* Image – contain to show the full image; 45vh cap keeps controls visible without scrolling */}
+      <div className="-mx-6 -mt-6 bg-muted/30 flex items-center justify-center overflow-hidden max-h-[45vh]">
         <img
           src={imageUrl}
           alt={grammarName}
-          className="w-full h-full object-cover object-center scale-[1.12] transition-transform"
+          className="w-full max-h-[45vh] object-contain"
         />
       </div>
 
-      <div className="max-w-lg mx-auto space-y-4">
+      <div className="max-w-lg mx-auto space-y-3">
         {/* Grammar hint + progress */}
         <div className="rounded-lg border bg-muted/40 px-4 py-3 space-y-0.5">
           <div className="flex items-center justify-between">
