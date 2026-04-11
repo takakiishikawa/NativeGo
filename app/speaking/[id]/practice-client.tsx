@@ -3,30 +3,26 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Loader2 } from "lucide-react"
+import { Loader2, Star } from "lucide-react"
+import type { PastLog } from "./page"
 
 const DURATION = 30
 const TOTAL_REQUIRED = 3
 
 type State = "idle" | "recording" | "evaluating" | "error"
 
-// Circular countdown SVG
 function CountdownRing({ remaining, total }: { remaining: number; total: number }) {
   const r = 44
   const circumference = 2 * Math.PI * r
-  const progress = remaining / total
-  const dashOffset = circumference * (1 - progress)
+  const dashOffset = circumference * (1 - remaining / total)
 
   return (
     <div className="relative inline-flex items-center justify-center">
       <svg width="120" height="120" className="-rotate-90">
-        <circle cx="60" cy="60" r={r} fill="none" stroke="currentColor" strokeWidth="6"
-          className="text-muted/30" />
+        <circle cx="60" cy="60" r={r} fill="none" stroke="currentColor" strokeWidth="6" className="text-muted/30" />
         <circle
           cx="60" cy="60" r={r} fill="none" stroke="currentColor" strokeWidth="6"
-          strokeDasharray={circumference}
-          strokeDashoffset={dashOffset}
-          strokeLinecap="round"
+          strokeDasharray={circumference} strokeDashoffset={dashOffset} strokeLinecap="round"
           className={`transition-all duration-1000 ${remaining <= 10 ? "text-red-500" : "text-blue-500"}`}
         />
       </svg>
@@ -37,18 +33,62 @@ function CountdownRing({ remaining, total }: { remaining: number; total: number 
   )
 }
 
+// Parse [GOOD]/[UPGRADE]/[GRAMMAR] comment format
+function parseComment(raw: string) {
+  const goodMatch = raw.match(/\[GOOD\]([\s\S]*?)(?=\[UPGRADE\]|\[GRAMMAR\]|$)/)
+  const upgradeMatch = raw.match(/\[UPGRADE\]([\s\S]*?)(?=\[GRAMMAR\]|$)/)
+  const grammarMatch = raw.match(/\[GRAMMAR\]([\s\S]*)$/)
+  if (goodMatch && upgradeMatch && grammarMatch) {
+    return {
+      goodPoint: goodMatch[1].trim(),
+      upgrade: upgradeMatch[1].trim(),
+      grammarNote: grammarMatch[1].trim(),
+    }
+  }
+  return null
+}
+
+function PastFeedbackCard({ log, index }: { log: PastLog; index: number }) {
+  const sections = parseComment(log.comment)
+  const label = index === 0 ? "前回のフィードバック" : `${index + 1}回前のフィードバック`
+
+  return (
+    <div className="rounded-lg border bg-muted/20 px-3 py-2.5 space-y-2 text-sm">
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-medium text-muted-foreground">{label}</span>
+        <span className="flex gap-0.5">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <Star key={i} className={`h-3 w-3 ${i <= log.total_score ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground/40"}`} />
+          ))}
+        </span>
+      </div>
+      {sections ? (
+        <div className="space-y-1.5 text-xs leading-relaxed">
+          <p><span className="font-medium text-green-600 dark:text-green-400">✓ </span><span className="text-foreground">{sections.goodPoint}</span></p>
+          <p><span className="font-medium text-blue-600 dark:text-blue-400">↑ </span><span className="text-foreground">{sections.upgrade}</span></p>
+          <p><span className="font-medium text-muted-foreground">◎ </span><span className="text-foreground">{sections.grammarNote}</span></p>
+        </div>
+      ) : (
+        <p className="text-xs text-foreground leading-relaxed">{log.comment}</p>
+      )}
+    </div>
+  )
+}
+
 export function PracticeClient({
   grammarId,
   grammarName,
   grammarSummary,
   imageUrl,
   completedCount,
+  pastLogs,
 }: {
   grammarId: string
   grammarName: string
   grammarSummary: string
   imageUrl: string
   completedCount: number
+  pastLogs: PastLog[]
 }) {
   const router = useRouter()
   const [state, setState] = useState<State>("idle")
@@ -191,7 +231,7 @@ export function PracticeClient({
 
   return (
     <div className="space-y-2">
-      {/* Header: grammar name + progress */}
+      {/* Header */}
       <div className="-mt-2 flex items-center justify-between gap-2">
         <h1 className="font-semibold text-base line-clamp-1">{grammarName}</h1>
         <span className="text-xs font-medium text-muted-foreground tabular-nums shrink-0">
@@ -199,18 +239,23 @@ export function PracticeClient({
         </span>
       </div>
 
-      {/* Image – full width, contain, 40vh cap */}
+      {/* Image */}
       <div className="-mx-6 bg-muted/30 flex items-center justify-center overflow-hidden max-h-[40vh]">
-        <img
-          src={imageUrl}
-          alt={grammarName}
-          className="w-full max-h-[40vh] object-contain"
-        />
+        <img src={imageUrl} alt={grammarName} className="w-full max-h-[40vh] object-contain" />
       </div>
 
       <div className="max-w-lg mx-auto space-y-3">
         {/* Grammar summary */}
         <p className="text-sm text-muted-foreground leading-relaxed">{grammarSummary}</p>
+
+        {/* Past feedback (shown on 2nd / 3rd session) */}
+        {pastLogs.length > 0 && state === "idle" && (
+          <div className="space-y-2">
+            {pastLogs.map((log, i) => (
+              <PastFeedbackCard key={i} log={log} index={i} />
+            ))}
+          </div>
+        )}
 
         {/* Controls */}
         {state === "idle" && (
@@ -227,14 +272,10 @@ export function PracticeClient({
         {state === "recording" && (
           <div className="flex flex-col items-center gap-3">
             <CountdownRing remaining={remaining} total={DURATION} />
-
-            {/* Recording indicator */}
             <div className="flex items-center gap-2">
               <span className="inline-block w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
               <span className="text-sm font-medium text-red-500">録音中</span>
             </div>
-
-            {/* Live transcript */}
             <div className="w-full rounded-lg border bg-muted/20 px-4 py-3 min-h-[56px]">
               {finalText || interimText ? (
                 <p className="text-sm leading-relaxed">
@@ -245,7 +286,6 @@ export function PracticeClient({
                 <p className="text-sm text-muted-foreground/60 italic">話してください...</p>
               )}
             </div>
-
             <Button variant="outline" size="lg" onClick={stopEarly} className="gap-2 px-8">
               停止して評価
             </Button>
@@ -273,13 +313,9 @@ export function PracticeClient({
 
         {state === "error" && (
           <div className="flex flex-col items-center gap-3 pt-2">
-            <p className="text-sm text-destructive text-center">
-              評価中にエラーが発生しました。
-            </p>
+            <p className="text-sm text-destructive text-center">評価中にエラーが発生しました。</p>
             {errorDetail && (
-              <p className="text-xs text-muted-foreground text-center break-all max-w-xs">
-                {errorDetail}
-              </p>
+              <p className="text-xs text-muted-foreground text-center break-all max-w-xs">{errorDetail}</p>
             )}
             <div className="flex gap-3">
               <Button variant="outline" onClick={retry}>もう一度試す</Button>
