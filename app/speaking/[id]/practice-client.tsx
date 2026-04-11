@@ -6,8 +6,9 @@ import { Button } from "@/components/ui/button"
 import { Loader2 } from "lucide-react"
 
 const DURATION = 30
+const TOTAL_REQUIRED = 3
 
-type State = "idle" | "recording" | "evaluating"
+type State = "idle" | "recording" | "evaluating" | "error"
 
 // Circular countdown SVG
 function CountdownRing({ remaining, total }: { remaining: number; total: number }) {
@@ -41,11 +42,13 @@ export function PracticeClient({
   grammarName,
   grammarSummary,
   imageUrl,
+  completedCount,
 }: {
   grammarId: string
   grammarName: string
   grammarSummary: string
   imageUrl: string
+  completedCount: number
 }) {
   const router = useRouter()
   const [state, setState] = useState<State>("idle")
@@ -73,6 +76,10 @@ export function PracticeClient({
   }, [])
 
   const evaluate = useCallback(async (text: string) => {
+    // Prevent double calls (e.g. from onerror + timer firing simultaneously)
+    if (stoppedRef.current) return
+    stoppedRef.current = true
+
     setState("evaluating")
     timerRef.current && clearInterval(timerRef.current)
     recognitionRef.current?.abort()
@@ -88,10 +95,11 @@ export function PracticeClient({
         router.push(`/speaking/${grammarId}/result?log=${data.logId}`)
       } else {
         console.error("speaking-eval error:", data.error)
-        router.push("/speaking")
+        setState("error")
       }
-    } catch {
-      router.push("/speaking")
+    } catch (err) {
+      console.error("speaking-eval fetch error:", err)
+      setState("error")
     }
   }, [grammarId, grammarName, router])
 
@@ -135,16 +143,23 @@ export function PracticeClient({
       setRemaining(count)
       if (count <= 0) {
         clearInterval(timerRef.current!)
-        stoppedRef.current = true
         evaluate(transcriptRef.current)
       }
     }, 1000)
   }
 
   function stopEarly() {
-    stoppedRef.current = true
+    if (stoppedRef.current) return
     timerRef.current && clearInterval(timerRef.current)
     evaluate(transcriptRef.current)
+  }
+
+  function retry() {
+    stoppedRef.current = false
+    setState("idle")
+    setRemaining(DURATION)
+    setTranscript("")
+    transcriptRef.current = ""
   }
 
   if (!supported) {
@@ -160,34 +175,50 @@ export function PracticeClient({
   }
 
   return (
-    <div className="space-y-5">
-      {/* Image - full bleed, breaks out of p-6 layout padding */}
-      <div className="-mx-6 -mt-6 overflow-hidden aspect-[16/9]">
-        <img src={imageUrl} alt={grammarName} className="w-full h-full object-cover" />
+    <div className="space-y-4">
+      {/* Image – cropped to fixed height; scale-[1.12] trims the white borders generated images often have */}
+      <div className="-mx-6 -mt-6 overflow-hidden h-40">
+        <img
+          src={imageUrl}
+          alt={grammarName}
+          className="w-full h-full object-cover object-center scale-[1.12] transition-transform"
+        />
       </div>
 
-      <div className="max-w-lg mx-auto space-y-5">
-        {/* Grammar hint */}
+      <div className="max-w-lg mx-auto space-y-4">
+        {/* Grammar hint + progress */}
         <div className="rounded-lg border bg-muted/40 px-4 py-3 space-y-0.5">
-          <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">使いたい文法</p>
-          <p className="text-lg font-semibold">{grammarName}</p>
-          <p className="text-base text-muted-foreground">{grammarSummary}</p>
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">使いたい文法</p>
+            <span className="text-xs font-medium text-muted-foreground tabular-nums">
+              {completedCount} / {TOTAL_REQUIRED} 回完了
+            </span>
+          </div>
+          <p className="text-base font-semibold">{grammarName}</p>
+          <p className="text-sm text-muted-foreground">{grammarSummary}</p>
         </div>
 
         {/* Timer + controls */}
         {state === "idle" && (
-          <div className="flex flex-col items-center gap-4 pt-1">
-            <p className="text-base text-center text-muted-foreground leading-relaxed">
+          <div className="flex flex-col items-center gap-3">
+            <p className="text-sm text-center text-muted-foreground leading-relaxed">
               この文法を使いながら、画像の状況を英語で説明してみましょう
             </p>
             <Button size="lg" onClick={startRecording} className="gap-2 px-8">
               🎤 録音スタート
             </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => router.push("/speaking")}
+            >
+              途中終了
+            </Button>
           </div>
         )}
 
         {state === "recording" && (
-          <div className="flex flex-col items-center gap-4">
+          <div className="flex flex-col items-center gap-3">
             <CountdownRing remaining={remaining} total={DURATION} />
             <div className="flex items-center gap-2">
               <span className="inline-block w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
@@ -201,6 +232,18 @@ export function PracticeClient({
             <Button variant="outline" size="lg" onClick={stopEarly} className="gap-2 px-8">
               停止して評価
             </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                stoppedRef.current = true
+                timerRef.current && clearInterval(timerRef.current)
+                recognitionRef.current?.abort()
+                router.push("/speaking")
+              }}
+            >
+              途中終了
+            </Button>
           </div>
         )}
 
@@ -211,16 +254,15 @@ export function PracticeClient({
           </div>
         )}
 
-        {/* Quit button */}
-        {state !== "evaluating" && (
-          <div className="flex justify-center">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => router.push("/speaking")}
-            >
-              途中終了
-            </Button>
+        {state === "error" && (
+          <div className="flex flex-col items-center gap-3 pt-2">
+            <p className="text-sm text-destructive text-center">
+              評価中にエラーが発生しました。
+            </p>
+            <div className="flex gap-3">
+              <Button variant="outline" onClick={retry}>もう一度試す</Button>
+              <Button variant="outline" onClick={() => router.push("/speaking")}>一覧に戻る</Button>
+            </div>
           </div>
         )}
       </div>

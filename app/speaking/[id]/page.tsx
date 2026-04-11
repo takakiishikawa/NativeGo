@@ -6,11 +6,14 @@ export default async function SpeakingPracticePage({ params }: { params: Promise
   const { id } = await params
   const supabase = await createClient()
 
-  const { data: grammar } = await supabase
-    .from("grammar")
-    .select("id, name, summary, image_url")
-    .eq("id", id)
-    .single()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect("/speaking")
+
+  const [{ data: grammar }, { count: completedCount }] = await Promise.all([
+    supabase.from("grammar").select("id, name, summary, image_url").eq("id", id).single(),
+    supabase.from("speaking_logs").select("id", { count: "exact", head: true })
+      .eq("grammar_id", id).eq("user_id", user.id),
+  ])
 
   if (!grammar || !grammar.image_url) redirect("/speaking")
 
@@ -20,6 +23,7 @@ export default async function SpeakingPracticePage({ params }: { params: Promise
       grammarName={grammar.name}
       grammarSummary={grammar.summary}
       imageUrl={grammar.image_url}
+      completedCount={completedCount ?? 0}
     />
   )
 }
