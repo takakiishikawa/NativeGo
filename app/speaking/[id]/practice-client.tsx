@@ -53,7 +53,9 @@ export function PracticeClient({
   const router = useRouter()
   const [state, setState] = useState<State>("idle")
   const [remaining, setRemaining] = useState(DURATION)
-  const [transcript, setTranscript] = useState("")
+  const [finalText, setFinalText] = useState("")
+  const [interimText, setInterimText] = useState("")
+  const [errorDetail, setErrorDetail] = useState("")
   const [supported, setSupported] = useState(true)
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -76,7 +78,6 @@ export function PracticeClient({
   }, [])
 
   const evaluate = useCallback(async (text: string) => {
-    // Prevent double calls (e.g. from onerror + timer firing simultaneously)
     if (stoppedRef.current) return
     stoppedRef.current = true
 
@@ -94,11 +95,15 @@ export function PracticeClient({
       if (data.logId) {
         router.push(`/speaking/${grammarId}/result?log=${data.logId}`)
       } else {
-        console.error("speaking-eval error:", data.error)
+        const msg = data.error ?? `HTTP ${res.status}`
+        console.error("speaking-eval error:", msg)
+        setErrorDetail(msg)
         setState("error")
       }
     } catch (err) {
-      console.error("speaking-eval fetch error:", err)
+      const msg = err instanceof Error ? err.message : String(err)
+      console.error("speaking-eval fetch error:", msg)
+      setErrorDetail(msg)
       setState("error")
     }
   }, [grammarId, grammarName, router])
@@ -111,7 +116,9 @@ export function PracticeClient({
 
     stoppedRef.current = false
     transcriptRef.current = ""
-    setTranscript("")
+    setFinalText("")
+    setInterimText("")
+    setErrorDetail("")
     setRemaining(DURATION)
     setState("recording")
 
@@ -124,11 +131,17 @@ export function PracticeClient({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     recognition.onresult = (event: any) => {
       let final = ""
+      let interim = ""
       for (let i = 0; i < event.results.length; i++) {
-        if (event.results[i].isFinal) final += event.results[i][0].transcript + " "
+        if (event.results[i].isFinal) {
+          final += event.results[i][0].transcript + " "
+        } else {
+          interim += event.results[i][0].transcript
+        }
       }
       transcriptRef.current = final
-      setTranscript(final)
+      setFinalText(final)
+      setInterimText(interim)
     }
 
     recognition.onerror = () => {
@@ -158,7 +171,9 @@ export function PracticeClient({
     stoppedRef.current = false
     setState("idle")
     setRemaining(DURATION)
-    setTranscript("")
+    setFinalText("")
+    setInterimText("")
+    setErrorDetail("")
     transcriptRef.current = ""
   }
 
@@ -184,7 +199,7 @@ export function PracticeClient({
         </span>
       </div>
 
-      {/* Image – full width, contain to show the full image, 40vh cap */}
+      {/* Image – full width, contain, 40vh cap */}
       <div className="-mx-6 bg-muted/30 flex items-center justify-center overflow-hidden max-h-[40vh]">
         <img
           src={imageUrl}
@@ -197,17 +212,13 @@ export function PracticeClient({
         {/* Grammar summary */}
         <p className="text-sm text-muted-foreground leading-relaxed">{grammarSummary}</p>
 
-        {/* Timer + controls */}
+        {/* Controls */}
         {state === "idle" && (
           <div className="flex flex-col items-center gap-3">
             <Button size="lg" onClick={startRecording} className="gap-2 px-8">
               🎤 録音スタート
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => router.push("/speaking")}
-            >
+            <Button variant="outline" size="sm" onClick={() => router.push("/speaking")}>
               途中終了
             </Button>
           </div>
@@ -216,15 +227,25 @@ export function PracticeClient({
         {state === "recording" && (
           <div className="flex flex-col items-center gap-3">
             <CountdownRing remaining={remaining} total={DURATION} />
+
+            {/* Recording indicator */}
             <div className="flex items-center gap-2">
               <span className="inline-block w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
               <span className="text-sm font-medium text-red-500">録音中</span>
             </div>
-            {transcript && (
-              <p className="text-sm text-muted-foreground text-center max-w-xs line-clamp-3">
-                {transcript}
-              </p>
-            )}
+
+            {/* Live transcript */}
+            <div className="w-full rounded-lg border bg-muted/20 px-4 py-3 min-h-[56px]">
+              {finalText || interimText ? (
+                <p className="text-sm leading-relaxed">
+                  <span className="text-foreground">{finalText}</span>
+                  <span className="text-muted-foreground italic">{interimText}</span>
+                </p>
+              ) : (
+                <p className="text-sm text-muted-foreground/60 italic">話してください...</p>
+              )}
+            </div>
+
             <Button variant="outline" size="lg" onClick={stopEarly} className="gap-2 px-8">
               停止して評価
             </Button>
@@ -255,6 +276,11 @@ export function PracticeClient({
             <p className="text-sm text-destructive text-center">
               評価中にエラーが発生しました。
             </p>
+            {errorDetail && (
+              <p className="text-xs text-muted-foreground text-center break-all max-w-xs">
+                {errorDetail}
+              </p>
+            )}
             <div className="flex gap-3">
               <Button variant="outline" onClick={retry}>もう一度試す</Button>
               <Button variant="outline" onClick={() => router.push("/speaking")}>一覧に戻る</Button>
