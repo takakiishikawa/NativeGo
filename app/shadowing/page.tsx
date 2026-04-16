@@ -318,15 +318,15 @@ function VideoCard({
             <ExternalLink className="h-8 w-8 text-muted-foreground/30" />
           </div>
         )}
-        {/* Hover overlay */}
-        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-200 flex items-center justify-center">
-          <ExternalLink className="h-6 w-6 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200 drop-shadow" />
-        </div>
-        {/* Lap badge */}
-        {isCompleted && (
-          <div className="absolute top-2 right-2 flex items-center gap-1 rounded-full bg-[var(--bg-elevated,#F0F0EF)] px-2 py-0.5 text-[var(--text-secondary,#6B6B68)] text-xs font-medium shadow-sm">
-            <CheckCircle className="h-3 w-3" />
-            {video.lapCount}周完了
+        {/* Completed overlay */}
+        {isCompleted ? (
+          <div className="absolute inset-0 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.45)" }}>
+            <CheckCircle className="h-6 w-6 text-white drop-shadow" />
+          </div>
+        ) : (
+          /* Hover overlay (未完了のみ) */
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-200 flex items-center justify-center">
+            <ExternalLink className="h-6 w-6 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200 drop-shadow" />
           </div>
         )}
       </div>
@@ -334,11 +334,21 @@ function VideoCard({
       <div className="p-4 flex flex-col gap-3 flex-1">
         {/* Title + duration */}
         <div className="flex-1">
-          <p className="text-sm font-medium line-clamp-2 leading-snug group-hover:text-primary transition-colors">
+          <p className={cn(
+            "text-sm font-medium line-clamp-2 leading-snug transition-colors",
+            isCompleted
+              ? "text-[var(--text-tertiary,#A0A09D)]"
+              : "group-hover:text-primary"
+          )}>
             {video.title}
           </p>
           {video.duration && (
-            <p className="text-xs text-muted-foreground mt-1">{video.duration}</p>
+            <p className={cn(
+              "text-xs mt-1",
+              isCompleted ? "text-[var(--text-tertiary,#A0A09D)]" : "text-muted-foreground"
+            )}>
+              {video.duration}
+            </p>
           )}
         </div>
 
@@ -356,7 +366,7 @@ function VideoCard({
             <button
               onClick={handleComplete}
               disabled={marking}
-              className="rounded-md border border-[var(--border-default,rgba(0,0,0,0.12))] bg-transparent hover:bg-muted px-3 py-1 text-xs font-medium text-[var(--text-secondary,#6B6B68)] transition-colors disabled:opacity-50"
+              className="w-full rounded-md bg-primary hover:bg-primary/90 text-primary-foreground px-3 py-1.5 text-xs font-medium transition-colors disabled:opacity-50"
             >
               {marking ? "記録中..." : "完了にする"}
             </button>
