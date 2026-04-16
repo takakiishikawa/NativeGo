@@ -1,7 +1,7 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { BookOpen, MessageSquare, ChevronRight } from "lucide-react"
+import { BookOpen, MessageSquare, Mic, Play } from "lucide-react"
 
 function PracticeCard({
   onClick,
@@ -9,28 +9,22 @@ function PracticeCard({
   iconBg,
   iconColor,
   title,
-  description,
 }: {
   onClick: () => void
   icon: React.ReactNode
   iconBg: string
   iconColor: string
   title: string
-  description: string
 }) {
   return (
     <button
       onClick={onClick}
-      className="group w-full text-left flex items-center gap-4 rounded-[12px] border border-[var(--border-subtle,rgba(0,0,0,0.08))] bg-card px-5 py-4 hover:border-[var(--border-default,rgba(0,0,0,0.12))] hover:shadow-sm transition-all"
+      className="group w-full text-left flex flex-col items-center gap-3 rounded-[12px] border border-[var(--border-subtle,rgba(0,0,0,0.08))] bg-card px-4 py-5 hover:border-[var(--border-default,rgba(0,0,0,0.12))] hover:shadow-sm transition-all"
     >
-      <div className={`rounded-[8px] p-2.5 shrink-0 ${iconBg}`}>
+      <div className={`rounded-[8px] p-2.5 ${iconBg}`}>
         <span className={iconColor}>{icon}</span>
       </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-[16px] font-medium text-foreground">{title}</p>
-        <p className="text-[13px] text-muted-foreground mt-0.5">{description}</p>
-      </div>
-      <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0 opacity-0 group-hover:opacity-60 transition-opacity" />
+      <p className="text-[13px] font-medium text-foreground text-center leading-snug">{title}</p>
     </button>
   )
 }
@@ -39,20 +33,19 @@ export default function PracticePage() {
   const router = useRouter()
 
   return (
-    <div className="space-y-6 max-w-xl">
+    <div className="space-y-6 max-w-2xl">
       <div>
-        <h1 className="text-[22px] font-medium">リピーティング</h1>
+        <h1 className="text-[22px] font-medium">練習を始める</h1>
         <p className="text-sm text-muted-foreground mt-1">練習するカテゴリを選んでください</p>
       </div>
 
-      <div className="space-y-2">
+      <div className="grid grid-cols-4 gap-3">
         <PracticeCard
           onClick={() => router.push("/repeating/grammar")}
           icon={<BookOpen className="h-5 w-5" />}
           iconBg="bg-accent"
           iconColor="text-primary"
           title="文法練習"
-          description="文法パターンをリピーティングで練習します"
         />
         <PracticeCard
           onClick={() => router.push("/repeating/expression")}
@@ -60,7 +53,20 @@ export default function PracticePage() {
           iconBg="bg-[#F0FDFA] dark:bg-[#0D9488]/10"
           iconColor="text-[#0D9488] dark:text-[#14B8A6]"
           title="フレーズ練習"
-          description="フレーズを会話形式で練習します"
+        />
+        <PracticeCard
+          onClick={() => router.push("/speaking")}
+          icon={<Mic className="h-5 w-5" />}
+          iconBg="bg-[#FFF7ED] dark:bg-[#EA580C]/10"
+          iconColor="text-[#EA580C] dark:text-[#F97316]"
+          title="スピーキング"
+        />
+        <PracticeCard
+          onClick={() => router.push("/shadowing")}
+          icon={<Play className="h-5 w-5" />}
+          iconBg="bg-[#FEF2F2] dark:bg-[#DC2626]/10"
+          iconColor="text-[#DC2626] dark:text-[#EF4444]"
+          title="シャドーイング"
         />
       </div>
     </div>

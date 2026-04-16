@@ -82,11 +82,11 @@ export function LineChart({
       </CardHeader>
       <CardContent className="px-5 pb-4 pt-2">
         {!hasData ? (
-          <div className="h-[80px] flex items-center justify-center text-xs text-[var(--text-tertiary,#A0A09D)]">
+          <div className="h-[160px] flex items-center justify-center text-xs text-[var(--text-tertiary,#A0A09D)]">
             {emptyText}
           </div>
         ) : (
-          <ResponsiveContainer width="100%" height={80}>
+          <ResponsiveContainer width="100%" height={160}>
             <ReLineChart data={data} margin={{ top: 4, right: 4, left: -28, bottom: 0 }}>
               {series.map((s) => (
                 <Line
