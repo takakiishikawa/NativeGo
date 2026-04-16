@@ -27,8 +27,8 @@ export default async function SpeakingPage() {
   return (
     <div className="space-y-6 max-w-4xl">
       <div>
-        <h1 className="text-3xl font-bold">スピーキング</h1>
-        <p className="text-muted-foreground mt-1">画像を見ながら英語で説明する練習</p>
+        <h1 className="text-[22px] font-medium">スピーキング</h1>
+        <p className="text-sm text-muted-foreground mt-1">画像を見ながら英語で説明する練習</p>
       </div>
 
       {/* Pending image generation banner */}
@@ -52,7 +52,7 @@ export default async function SpeakingPage() {
             const lesson = Array.isArray(g.lessons) ? g.lessons[0] : g.lessons
             return (
               <Link key={g.id} href={`/speaking/${g.id}`}>
-                <Card className="cursor-pointer hover:shadow-md hover:border-blue-400 dark:hover:border-blue-500 transition-all overflow-hidden group p-0">
+                <Card className="cursor-pointer hover:shadow-sm hover:border-[var(--border-default)] transition-all overflow-hidden group p-0 border-[var(--border-subtle,rgba(0,0,0,0.08))] shadow-none">
                   <div className="aspect-[4/3] overflow-hidden relative">
                     <img
                       src={g.image_url!}

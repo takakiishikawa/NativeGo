@@ -6,148 +6,116 @@
 
 /* react-day-picker dark mode */
 .dark .rdp-root {
-  --rdp-accent-color: #3B82F6;
-  --rdp-accent-background-color: rgba(59,130,246,0.15);
-  color: #E2E8F0;
+  --rdp-accent-color: #7B8AF5;
+  --rdp-accent-background-color: rgba(123,138,245,0.15);
+  color: #E8E8E5;
 }
-.dark .rdp-day_button:hover {
-  background-color: #334155;
-}
-.dark .rdp-month_caption,
-.dark .rdp-nav {
-  color: #E2E8F0;
-}
-.dark .rdp-nav button {
-  color: #94A3B8;
-}
-.dark .rdp-nav button:hover {
-  background-color: #334155;
-  color: #E2E8F0;
-}
-/* sizing tweak */
+.dark .rdp-day_button:hover { background-color: #242422; }
+.dark .rdp-month_caption, .dark .rdp-nav { color: #E8E8E5; }
+.dark .rdp-nav button { color: #8F8F8C; }
+.dark .rdp-nav button:hover { background-color: #242422; color: #E8E8E5; }
 .rdp-root {
-  --rdp-day-height: 36px;
-  --rdp-day-width: 36px;
-  --rdp-day_button-height: 34px;
-  --rdp-day_button-width: 34px;
+  --rdp-day-height: 36px;  --rdp-day-width: 36px;
+  --rdp-day_button-height: 34px;  --rdp-day_button-width: 34px;
 }
 
-/* ── Design System Tokens ─────────────────────────────── */
+/* ── Design Tokens ─────────────────────────────────────────── */
 :root {
-  /* Primary (blue) */
-  --color-primary-50:  #EFF6FF;
-  --color-primary-100: #DBEAFE;
-  --color-primary-200: #BFDBFE;
-  --color-primary-400: #60A5FA;
-  --color-primary-600: #2563EB;
-  --color-primary-700: #1D4ED8;
-  --color-primary-900: #1E3A8A;
+  /* Surface */
+  --bg-base:     #F7F7F6;
+  --bg-surface:  #FFFFFF;
+  --bg-elevated: #F0F0EF;
 
-  /* Neutral */
-  --color-neutral-50:  #F8FAFC;
-  --color-neutral-100: #F1F5F9;
-  --color-neutral-200: #E2E8F0;
-  --color-neutral-400: #94A3B8;
-  --color-neutral-600: #475569;
-  --color-neutral-800: #1E293B;
-  --color-neutral-900: #0F172A;
+  /* Text */
+  --text-primary:   #1A1A18;
+  --text-secondary: #6B6B68;
+  --text-tertiary:  #A0A09D;
 
-  /* Feature Colors
-   * Grammar  → primary blue (same as --color-primary-*)
-   * Phrase   → teal  (calm, communicative, sophisticated)
-   * Speaking → amber (warm, expressive, vocal energy)
-   */
-  --color-phrase-50:    #F0FDFA;
-  --color-phrase-100:   #CCFBF1;
-  --color-phrase-200:   #99F6E4;
-  --color-phrase-500:   #14B8A6;
-  --color-phrase-600:   #0D9488;
-  --color-phrase-700:   #0F766E;
+  /* Border */
+  --border-subtle:  rgba(0,0,0,0.08);
+  --border-default: rgba(0,0,0,0.12);
 
-  --color-speaking-50:  #FFFBEB;
-  --color-speaking-100: #FEF3C7;
-  --color-speaking-200: #FDE68A;
-  --color-speaking-500: #F59E0B;
-  --color-speaking-600: #D97706;
-  --color-speaking-700: #B45309;
+  /* Accent (indigo) */
+  --accent-color:  #5B6AF0;
+  --accent-light:  #EEF0FE;
+  --accent-text:   #3D4ECC;
 
-  /* Semantic */
-  --color-success:        #16A34A;
-  --color-success-bg:     #F0FDF4;
-  --color-warning:        #F59E0B;
-  --color-warning-bg:     #FFFBEB;
-  --color-neutral-tag:    #64748B;
-  --color-neutral-tag-bg: #F1F5F9;
-  --color-error:          #EF4444;
-  --color-error-bg:       #FEF2F2;
+  /* Semantic — keep for chart colors */
+  --color-grammar:  #5B6AF0;
+  --color-phrase:   #0D9488;
+  --color-speaking: #D97706;
+  --color-shadow:   #7C3AED;
+  --color-success:  #16A34A;
+  --color-error:    #EF4444;
 
   /* Spacing */
-  --space-1: 4px;   --space-2: 8px;   --space-3: 12px;
-  --space-4: 16px;  --space-5: 20px;  --space-6: 24px;
-  --space-8: 32px;  --space-10: 40px; --space-12: 48px;
+  --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px;
+  --space-6:24px; --space-8:32px;
 
   /* Radius */
-  --radius-sm:   4px;
-  --radius-md:   8px;
-  --radius-lg:   12px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
   --radius-full: 9999px;
 
-  /* Shadows */
-  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
-  --shadow-md: 0 4px 6px rgba(0,0,0,0.07);
-  --shadow-lg: 0 10px 15px rgba(0,0,0,0.08);
-
-  /* ── shadcn/ui tokens (mapped to design system) ── */
-  --background:        #F8FAFC;
-  --foreground:        #0F172A;
+  /* ── shadcn/ui tokens ── */
+  --background:        #F7F7F6;
+  --foreground:        #1A1A18;
   --card:              #FFFFFF;
-  --card-foreground:   #0F172A;
+  --card-foreground:   #1A1A18;
   --popover:           #FFFFFF;
-  --popover-foreground:#0F172A;
-  --primary:           #2563EB;
+  --popover-foreground:#1A1A18;
+  --primary:           #5B6AF0;
   --primary-foreground:#FFFFFF;
-  --secondary:         #F1F5F9;
-  --secondary-foreground: #1E293B;
-  --muted:             #F1F5F9;
-  --muted-foreground:  #94A3B8;
-  --accent:            #EFF6FF;
-  --accent-foreground: #1D4ED8;
+  --secondary:         #F0F0EF;
+  --secondary-foreground: #1A1A18;
+  --muted:             #F0F0EF;
+  --muted-foreground:  #6B6B68;
+  --accent:            #EEF0FE;
+  --accent-foreground: #3D4ECC;
   --destructive:       #EF4444;
   --destructive-foreground: #FFFFFF;
-  --border:            #E2E8F0;
-  --input:             #E2E8F0;
-  --ring:              #2563EB;
+  --border:            rgba(0,0,0,0.12);
+  --input:             rgba(0,0,0,0.12);
+  --ring:              #5B6AF0;
   --radius:            0.5rem;
 }
 
 .dark {
-  --color-dark-bg:            #0F172A;
-  --color-dark-surface:       #1E293B;
-  --color-dark-border:        #334155;
-  --color-dark-text:          #E2E8F0;
-  --color-dark-subtext:       #94A3B8;
-  --color-dark-primary:       #3B82F6;
-  --color-dark-primary-hover: #2563EB;
+  --bg-base:     #111110;
+  --bg-surface:  #1A1A18;
+  --bg-elevated: #242422;
 
-  --background:        #0F172A;
-  --foreground:        #E2E8F0;
-  --card:              #1E293B;
-  --card-foreground:   #E2E8F0;
-  --popover:           #1E293B;
-  --popover-foreground:#E2E8F0;
-  --primary:           #3B82F6;
+  --text-primary:   #E8E8E5;
+  --text-secondary: #8F8F8C;
+  --text-tertiary:  #5A5A57;
+
+  --border-subtle:  rgba(255,255,255,0.06);
+  --border-default: rgba(255,255,255,0.10);
+
+  --accent-color: #7B8AF5;
+  --accent-light: #1E2040;
+  --accent-text:  #A0AAFF;
+
+  --background:        #111110;
+  --foreground:        #E8E8E5;
+  --card:              #1A1A18;
+  --card-foreground:   #E8E8E5;
+  --popover:           #1A1A18;
+  --popover-foreground:#E8E8E5;
+  --primary:           #7B8AF5;
   --primary-foreground:#FFFFFF;
-  --secondary:         #1E293B;
-  --secondary-foreground: #E2E8F0;
-  --muted:             #1E293B;
-  --muted-foreground:  #94A3B8;
-  --accent:            #1E3A8A;
-  --accent-foreground: #BFDBFE;
+  --secondary:         #242422;
+  --secondary-foreground: #E8E8E5;
+  --muted:             #242422;
+  --muted-foreground:  #8F8F8C;
+  --accent:            #1E2040;
+  --accent-foreground: #A0AAFF;
   --destructive:       #EF4444;
   --destructive-foreground: #FFFFFF;
-  --border:            #334155;
-  --input:             #334155;
-  --ring:              #3B82F6;
+  --border:            rgba(255,255,255,0.10);
+  --input:             rgba(255,255,255,0.10);
+  --ring:              #7B8AF5;
 }
 
 @theme inline {
@@ -170,8 +138,17 @@
   --color-border:             var(--border);
   --color-input:              var(--input);
   --color-ring:               var(--ring);
-  --font-sans: var(--font-noto-sans);
+  --font-sans: var(--font-inter), var(--font-noto-sans), -apple-system, sans-serif;
   --font-mono: ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  /* Typography scale */
+  --font-size-xs:   11px;
+  --font-size-sm:   13px;
+  --font-size-base: 14px;
+  --font-size-lg:   16px;
+  --font-size-xl:   22px;
+  --font-size-2xl:  28px;
+  --font-size-3xl:  28px;
 }
 
 @layer base {
@@ -182,8 +159,26 @@
   body {
     background-color: var(--background);
     color: var(--foreground);
-    font-family: var(--font-sans), "Noto Sans JP", system-ui, sans-serif;
+    font-family: var(--font-sans);
+    font-size: 14px;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* ── Utility classes ───────────────────────────────────────── */
+@layer utilities {
+  .section-label {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-tertiary, #A0A09D);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  /* Override dark-mode hardcoded sidebar classes */
+  .sidebar-bg {
+    background-color: var(--card);
+    border-right: 1px solid var(--border);
   }
 }

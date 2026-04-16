@@ -1,7 +1,6 @@
 "use client"
 
 import Link from "next/link"
-import { Card, CardContent } from "@/components/ui/card"
 import { BookOpen, MessageSquare, Mic, ChevronRight } from "lucide-react"
 
 interface Props {
@@ -13,6 +12,37 @@ interface Props {
   speakingDone: number
 }
 
+function CTACard({
+  href,
+  icon,
+  iconBg,
+  iconColor,
+  label,
+  sub,
+}: {
+  href: string
+  icon: React.ReactNode
+  iconBg: string
+  iconColor: string
+  label: string
+  sub: string
+}) {
+  return (
+    <Link href={href}>
+      <div className="group flex items-center gap-3 rounded-[12px] border border-[var(--border-subtle,rgba(0,0,0,0.08))] bg-card px-4 py-3 hover:border-[var(--border-default,rgba(0,0,0,0.12))] hover:shadow-sm transition-all cursor-pointer">
+        <div className={`rounded-[8px] p-2 shrink-0 transition-colors ${iconBg}`}>
+          <span className={iconColor}>{icon}</span>
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-[14px] font-medium text-foreground">{label}</p>
+          <p className="text-[13px] text-muted-foreground mt-0.5">{sub}</p>
+        </div>
+        <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
+      </div>
+    </Link>
+  )
+}
+
 export function CTASection({
   grammarsInProgress,
   expressionsInProgress,
@@ -22,62 +52,33 @@ export function CTASection({
   speakingDone,
 }: Props) {
   return (
-    <div className="space-y-3">
-      <div className="grid grid-cols-2 gap-3">
-        {/* 文法リピーティング */}
-        <Link href="/repeating/grammar">
-          <Card className="cursor-pointer bg-card border hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group">
-            <CardContent className="flex items-center gap-3 p-4">
-              <div className="rounded-xl bg-blue-50 dark:bg-blue-900/30 p-3 group-hover:bg-blue-100 dark:group-hover:bg-blue-800/40 transition-colors shrink-0">
-                <BookOpen className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-              </div>
-              <div className="min-w-0">
-                <p className="font-semibold text-base text-foreground">文法リピーティング</p>
-                <p className="text-sm text-muted-foreground mt-0.5">
-                  練習中 {grammarsInProgress} / 完了 {grammarDone}
-                </p>
-              </div>
-              <ChevronRight className="h-4 w-4 text-muted-foreground ml-auto shrink-0 group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-colors" />
-            </CardContent>
-          </Card>
-        </Link>
-
-        {/* フレーズリピーティング */}
-        <Link href="/repeating/expression">
-          <Card className="cursor-pointer bg-card border hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group">
-            <CardContent className="flex items-center gap-3 p-4">
-              <div className="rounded-xl bg-teal-50 dark:bg-teal-900/30 p-3 group-hover:bg-teal-100 dark:group-hover:bg-teal-800/40 transition-colors shrink-0">
-                <MessageSquare className="h-5 w-5 text-teal-600 dark:text-teal-400" />
-              </div>
-              <div className="min-w-0">
-                <p className="font-semibold text-base text-foreground">フレーズリピーティング</p>
-                <p className="text-sm text-muted-foreground mt-0.5">
-                  練習中 {expressionsInProgress} / 完了 {expressionDone}
-                </p>
-              </div>
-              <ChevronRight className="h-4 w-4 text-muted-foreground ml-auto shrink-0 group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors" />
-            </CardContent>
-          </Card>
-        </Link>
+    <div className="space-y-2">
+      <div className="grid grid-cols-2 gap-2">
+        <CTACard
+          href="/repeating/grammar"
+          icon={<BookOpen className="h-4 w-4" />}
+          iconBg="bg-accent"
+          iconColor="text-primary"
+          label="文法リピーティング"
+          sub={`練習中 ${grammarsInProgress} / 完了 ${grammarDone}`}
+        />
+        <CTACard
+          href="/repeating/expression"
+          icon={<MessageSquare className="h-4 w-4" />}
+          iconBg="bg-[#F0FDFA] dark:bg-[#0D9488]/10"
+          iconColor="text-[#0D9488] dark:text-[#14B8A6]"
+          label="フレーズリピーティング"
+          sub={`練習中 ${expressionsInProgress} / 完了 ${expressionDone}`}
+        />
       </div>
-
-      {/* スピーキング */}
-      <Link href="/speaking">
-        <Card className="cursor-pointer bg-card border hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group">
-          <CardContent className="flex items-center gap-3 p-4">
-            <div className="rounded-xl bg-amber-50 dark:bg-amber-900/30 p-3 group-hover:bg-amber-100 dark:group-hover:bg-amber-800/40 transition-colors shrink-0">
-              <Mic className="h-5 w-5 text-amber-600 dark:text-amber-400" />
-            </div>
-            <div className="min-w-0">
-              <p className="font-semibold text-base text-foreground">スピーキング</p>
-              <p className="text-sm text-muted-foreground mt-0.5">
-                練習中 {speakingInProgress} / 完了 {speakingDone}
-              </p>
-            </div>
-            <ChevronRight className="h-4 w-4 text-muted-foreground ml-auto shrink-0 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors" />
-          </CardContent>
-        </Card>
-      </Link>
+      <CTACard
+        href="/speaking"
+        icon={<Mic className="h-4 w-4" />}
+        iconBg="bg-[#FFFBEB] dark:bg-[#D97706]/10"
+        iconColor="text-[#D97706] dark:text-[#F59E0B]"
+        label="スピーキング"
+        sub={`練習中 ${speakingInProgress} / 完了 ${speakingDone}`}
+      />
     </div>
   )
 }

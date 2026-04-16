@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { Noto_Sans_JP } from "next/font/google"
+import { Inter, Noto_Sans_JP } from "next/font/google"
 import "./globals.css"
 import { Nav } from "@/components/layout/nav"
 import { createClient } from "@/lib/supabase/server"
@@ -8,6 +8,13 @@ import { DarkModeInit } from "@/components/dark-mode-init"
 import { LoginToast } from "@/components/login-toast"
 import { Suspense } from "react"
 import { Analytics } from "@vercel/analytics/next"
+
+const inter = Inter({
+  variable: "--font-inter",
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  display: "swap",
+})
 
 const notoSans = Noto_Sans_JP({
   variable: "--font-noto-sans",
@@ -33,7 +40,7 @@ export default async function RootLayout({
   return (
     <html
       lang="ja"
-      className={`${notoSans.variable} h-full antialiased`}
+      className={`${inter.variable} ${notoSans.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <head>
@@ -43,7 +50,7 @@ export default async function RootLayout({
         {user ? (
           <div className="flex h-screen">
             <Nav />
-            <main className="flex-1 overflow-y-auto p-6 bg-background">
+            <main className="flex-1 overflow-y-auto p-8 bg-background">
               <Suspense>
                 <LoginToast />
               </Suspense>

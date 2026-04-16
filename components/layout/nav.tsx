@@ -25,7 +25,7 @@ import { Input } from "@/components/ui/input"
 import { Dialog } from "@/components/ui/dialog"
 
 const navItems = [
-  { href: "/", label: "ダッシュボード", icon: HomeIcon },
+  { href: "/", label: "ホーム", icon: HomeIcon },
   { href: "/practice", label: "リピーティング", icon: ArrowPathRoundedSquareIcon },
   { href: "/speaking", label: "スピーキング", icon: MicrophoneIcon },
   { href: "/shadowing", label: "シャドーイング", icon: SpeakerWaveIcon },
@@ -36,39 +36,25 @@ const navItems = [
 
 function isActive(href: string, pathname: string) {
   if (href === "/") return pathname === "/"
-  if (href === "/practice") {
-    return pathname === "/practice" || pathname.startsWith("/repeating")
-  }
-  if (href === "/speaking") {
-    return pathname === "/speaking" || pathname.startsWith("/speaking/")
-  }
-  if (href === "/list") {
-    return (
-      pathname === "/list" ||
-      pathname === "/grammar" ||
-      pathname === "/expressions"
-    )
-  }
-  if (href === "/texts") {
-    return pathname === "/texts" || pathname === "/lessons" || pathname === "/add"
-  }
+  if (href === "/practice") return pathname === "/practice" || pathname.startsWith("/repeating")
+  if (href === "/speaking") return pathname === "/speaking" || pathname.startsWith("/speaking/")
+  if (href === "/list") return pathname === "/list" || pathname === "/grammar" || pathname === "/expressions"
+  if (href === "/texts") return pathname === "/texts" || pathname === "/lessons" || pathname === "/add"
   return pathname.startsWith(href)
 }
 
-function Avatar({ url, name, size = 8 }: { url?: string; name: string; size?: number }) {
+function Avatar({ url, name, size = 6 }: { url?: string; name: string; size?: number }) {
   const initials = name.charAt(0).toUpperCase()
   if (url) {
     return (
-      <div
-        className={`h-${size} w-${size} rounded-full overflow-hidden shrink-0`}
-        style={{ minWidth: `${size * 0.25}rem`, minHeight: `${size * 0.25}rem` }}
-      >
+      <div className={`h-${size} w-${size} rounded-full overflow-hidden shrink-0`}
+        style={{ minWidth: `${size * 0.25}rem`, minHeight: `${size * 0.25}rem` }}>
         <img src={url} alt={name} className="h-full w-full object-cover" />
       </div>
     )
   }
   return (
-    <div className={`h-${size} w-${size} rounded-full shrink-0 bg-primary flex items-center justify-center text-white text-xs font-semibold`}>
+    <div className={`h-${size} w-${size} rounded-full shrink-0 bg-primary flex items-center justify-center text-white text-xs font-medium`}>
       {initials}
     </div>
   )
@@ -88,19 +74,14 @@ export function Nav() {
   const [pendingFile, setPendingFile] = useState<File | null>(null)
   const [saving, setSaving] = useState(false)
   const [uploadError, setUploadError] = useState("")
-
   const [isDark, setIsDark] = useState(false)
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (!user) return
-      const name = user.user_metadata?.display_name || user.email?.split("@")[0] || "User"
-      const avatar = user.user_metadata?.avatar_url || ""
-      setDisplayName(name)
-      setAvatarUrl(avatar)
+      setDisplayName(user.user_metadata?.display_name || user.email?.split("@")[0] || "User")
+      setAvatarUrl(user.user_metadata?.avatar_url || "")
     })
-
-    // Track actual dark state via class on <html>
     const update = () => setIsDark(document.documentElement.classList.contains("dark"))
     update()
     const obs = new MutationObserver(update)
@@ -111,8 +92,7 @@ export function Nav() {
   function toggleTheme() {
     const next = isDark ? "light" : "dark"
     localStorage.setItem("theme", next)
-    if (next === "dark") document.documentElement.classList.add("dark")
-    else document.documentElement.classList.remove("dark")
+    document.documentElement.classList.toggle("dark", next === "dark")
   }
 
   function openProfile() {
@@ -136,25 +116,18 @@ export function Nav() {
     setUploadError("")
     try {
       let finalUrl = avatarUrl
-
       if (pendingFile) {
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) throw new Error("Not logged in")
         const ext = pendingFile.name.split(".").pop() || "jpg"
         const path = `${user.id}/avatar.${ext}`
-        const { error: upErr } = await supabase.storage
-          .from("avatars")
-          .upload(path, pendingFile, { upsert: true })
+        const { error: upErr } = await supabase.storage.from("avatars").upload(path, pendingFile, { upsert: true })
         if (upErr) throw upErr
         const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(path)
         finalUrl = urlData.publicUrl
       }
-
-      const { error } = await supabase.auth.updateUser({
-        data: { display_name: editName.trim(), avatar_url: finalUrl },
-      })
+      const { error } = await supabase.auth.updateUser({ data: { display_name: editName.trim(), avatar_url: finalUrl } })
       if (error) throw error
-
       setDisplayName(editName.trim() || displayName)
       setAvatarUrl(finalUrl)
       setProfileOpen(false)
@@ -171,129 +144,113 @@ export function Nav() {
 
   return (
     <>
-      <nav className="flex h-screen w-[220px] flex-col border-r bg-neutral-100 dark:bg-[#1E293B] px-3 py-5 shrink-0">
-        <div className="mb-7 px-2">
-          <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <div className="rounded-lg bg-primary p-1.5">
-              <ArrowPathRoundedSquareIcon className="h-4 w-4 text-white" />
+      <nav className="flex h-screen w-[220px] flex-col bg-card border-r border-[var(--border)] px-2 py-4 shrink-0">
+        {/* Logo */}
+        <div className="mb-5 px-2">
+          <Link href="/" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
+            <div className="rounded-[6px] bg-primary p-1.5">
+              <ArrowPathRoundedSquareIcon className="h-3.5 w-3.5 text-white" />
             </div>
-            <h1 className="text-lg font-bold tracking-tight">NativeGo</h1>
+            <span className="text-[14px] font-medium tracking-tight">NativeGo</span>
           </Link>
         </div>
 
+        {/* Nav items */}
         <div className="flex flex-1 flex-col gap-0.5">
           {navItems.map(({ href, label, icon: Icon }) => (
             <Link
               key={href}
               href={href}
               className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                "flex items-center gap-2.5 rounded-[6px] px-2 py-1.5 text-[13px] font-medium transition-colors h-8",
                 isActive(href, pathname)
-                  ? "bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
-                  : "text-neutral-600 hover:bg-neutral-200/60 hover:text-neutral-800 dark:text-neutral-400 dark:hover:bg-neutral-700/50 dark:hover:text-neutral-200"
+                  ? "bg-muted text-foreground"
+                  : "text-[var(--text-secondary)] hover:bg-muted/60 hover:text-foreground"
               )}
             >
-              <Icon className="h-5 w-5 shrink-0" />
+              <Icon className={cn(
+                "h-4 w-4 shrink-0 transition-opacity",
+                isActive(href, pathname) ? "opacity-100" : "opacity-60"
+              )} />
               {label}
             </Link>
           ))}
         </div>
 
-        {/* ── Bottom section ── */}
-        <div className="mt-auto flex flex-col gap-0.5 pt-3 border-t border-neutral-200 dark:border-neutral-700">
-          {/* User profile */}
+        {/* Footer */}
+        <div className="mt-auto flex flex-col gap-0.5 pt-3 border-t border-[var(--border)]">
+          {/* User */}
           <button
             onClick={openProfile}
-            className="flex items-center gap-3 rounded-lg px-3 py-2 w-full text-left hover:bg-neutral-200/60 dark:hover:bg-neutral-700/50 transition-colors group"
+            className="flex items-center gap-2.5 rounded-[6px] px-2 py-1.5 w-full text-left hover:bg-muted/60 transition-colors group h-8"
           >
             <Avatar url={avatarUrl} name={displayName || "U"} size={5} />
-            <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300 truncate flex-1 min-w-0">
+            <span className="text-[13px] font-medium text-foreground truncate flex-1 min-w-0">
               {displayName || "—"}
             </span>
-            <PencilSquareIcon className="h-3.5 w-3.5 text-neutral-400 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
+            <PencilSquareIcon className="h-3.5 w-3.5 text-[var(--text-tertiary)] shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
           </button>
 
-          {/* Concept link */}
+          {/* Concept */}
           <Link
             href="/concept"
             className={cn(
-              "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+              "flex items-center gap-2.5 rounded-[6px] px-2 py-1.5 text-[13px] font-medium transition-colors h-8",
               pathname === "/concept"
-                ? "bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
-                : "text-neutral-500 hover:bg-neutral-200/60 hover:text-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-700/50 dark:hover:text-neutral-200"
+                ? "bg-muted text-foreground"
+                : "text-[var(--text-secondary)] hover:bg-muted/60 hover:text-foreground"
             )}
           >
-            <LightBulbIcon className="h-5 w-5 shrink-0" />
+            <LightBulbIcon className={cn("h-4 w-4 shrink-0", pathname === "/concept" ? "opacity-100" : "opacity-60")} />
             コンセプト
           </Link>
 
           {/* Theme toggle */}
           <button
             onClick={toggleTheme}
-            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-neutral-500 hover:bg-neutral-200/60 hover:text-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-700/50 dark:hover:text-neutral-200 transition-colors"
+            className="flex items-center gap-2.5 rounded-[6px] px-2 py-1.5 text-[13px] font-medium text-[var(--text-secondary)] hover:bg-muted/60 hover:text-foreground transition-colors h-8"
           >
-            {isDark ? (
-              <MoonIcon className="h-5 w-5 shrink-0" />
-            ) : (
-              <SunIcon className="h-5 w-5 shrink-0" />
-            )}
-            {isDark ? "ダークモード" : "ライトモード"}
+            {isDark
+              ? <MoonIcon className="h-4 w-4 shrink-0 opacity-60" />
+              : <SunIcon className="h-4 w-4 shrink-0 opacity-60" />
+            }
+            {isDark ? "ダーク" : "ライト"}
           </button>
 
           {/* Logout */}
           <button
             onClick={handleSignOut}
-            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-neutral-500 hover:bg-neutral-200/60 hover:text-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-700/50 dark:hover:text-neutral-200 transition-colors"
+            className="flex items-center gap-2.5 rounded-[6px] px-2 py-1.5 text-[13px] font-medium text-[var(--text-secondary)] hover:bg-muted/60 hover:text-foreground transition-colors h-8"
           >
-            <ArrowRightOnRectangleIcon className="h-5 w-5 shrink-0" />
+            <ArrowRightOnRectangleIcon className="h-4 w-4 shrink-0 opacity-60" />
             ログアウト
           </button>
         </div>
       </nav>
 
-      {/* Profile edit dialog */}
+      {/* Profile dialog */}
       <Dialog open={profileOpen} onClose={() => setProfileOpen(false)} title="プロフィール編集">
         <div className="space-y-4">
           <div className="flex items-center gap-4">
-            {/* Perfect circle avatar preview */}
-            <div className="h-16 w-16 rounded-full overflow-hidden shrink-0 bg-primary flex items-center justify-center">
-              {previewUrl ? (
-                <img src={previewUrl} alt="avatar" className="h-full w-full object-cover" />
-              ) : (
-                <span className="text-white text-xl font-semibold">
-                  {(editName || "U").charAt(0).toUpperCase()}
-                </span>
-              )}
+            <div className="h-14 w-14 rounded-full overflow-hidden shrink-0 bg-primary flex items-center justify-center">
+              {previewUrl
+                ? <img src={previewUrl} alt="avatar" className="h-full w-full object-cover" />
+                : <span className="text-white text-lg font-medium">{(editName || "U").charAt(0).toUpperCase()}</span>
+              }
             </div>
-            <div className="space-y-1.5">
-              <p className="text-sm font-medium text-foreground">{editName || "—"}</p>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handleFileChange}
-              />
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="text-xs text-primary hover:underline"
-              >
+            <div className="space-y-1">
+              <p className="text-sm font-medium">{editName || "—"}</p>
+              <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
+              <button type="button" onClick={() => fileInputRef.current?.click()} className="text-xs text-primary hover:underline">
                 画像を変更
               </button>
             </div>
           </div>
           <div className="space-y-1.5">
             <label className="text-sm font-medium">表示名</label>
-            <Input
-              value={editName}
-              onChange={(e) => setEditName(e.target.value)}
-              placeholder="表示名を入力"
-            />
+            <Input value={editName} onChange={(e) => setEditName(e.target.value)} placeholder="表示名を入力" />
           </div>
-          {uploadError && (
-            <p className="text-xs text-destructive">{uploadError}</p>
-          )}
+          {uploadError && <p className="text-xs text-destructive">{uploadError}</p>}
           <Button onClick={handleSave} disabled={saving} className="w-full">
             {saving ? "保存中..." : "保存"}
           </Button>

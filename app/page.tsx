@@ -211,15 +211,13 @@ export default async function HomePage() {
       <StreakPopup streak={streak} />
 
       <div>
-        <h1 className="text-3xl font-bold">ダッシュボード</h1>
-        <p className="text-muted-foreground mt-1">学習進捗のまとめ</p>
+        <h1 className="text-[22px] font-medium">ダッシュボード</h1>
+        <p className="text-sm text-muted-foreground mt-1">学習進捗のまとめ</p>
       </div>
 
       {/* 練習を始める */}
       <div>
-        <h2 className="text-sm font-semibold text-muted-foreground mb-3 uppercase tracking-wide">
-          練習を始める
-        </h2>
+        <h2 className="section-label">練習を始める</h2>
         <CTASection
           grammarsInProgress={grammarsInProgress}
           expressionsInProgress={expressionsInProgress}
@@ -232,9 +230,7 @@ export default async function HomePage() {
 
       {/* 学習ログ */}
       <div className="space-y-4">
-        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-          学習ログ
-        </h2>
+        <h2 className="section-label">学習ログ</h2>
         <MetricsSection
           weeklyRepeating={weeklyRepeating}
           weeklyGrammar={weeklyGrammar}

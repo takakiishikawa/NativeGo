@@ -38,8 +38,8 @@ export default async function ReportPage() {
   return (
     <div className="space-y-8 max-w-4xl">
       <div>
-        <h1 className="text-3xl font-bold">レポート</h1>
-        <p className="text-muted-foreground mt-1">学習データの集計・推移</p>
+        <h1 className="text-[22px] font-medium">レポート</h1>
+        <p className="text-sm text-muted-foreground mt-1">学習データの集計・推移</p>
       </div>
 
       <ReportCharts logs={logs} ncLogs={ncLogs} youtubeLogs={youtubeLogs} />

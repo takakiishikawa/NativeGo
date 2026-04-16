@@ -143,8 +143,8 @@ export default function ShadowingPage() {
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-3xl font-bold">シャドーイング</h1>
-          <p className="text-muted-foreground mt-1">YouTubeでシャドーイング練習を管理する</p>
+          <h1 className="text-[22px] font-medium">シャドーイング</h1>
+          <p className="text-sm text-muted-foreground mt-1">YouTubeでシャドーイング練習を管理する</p>
         </div>
         <Button onClick={() => setShowAddModal(true)} className="gap-2">
           <Plus className="h-4 w-4" />

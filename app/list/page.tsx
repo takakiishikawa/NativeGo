@@ -242,8 +242,8 @@ export default function ListPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">文法・フレーズ</h1>
-        <p className="text-muted-foreground mt-1">登録済みの文法・フレーズを確認できます</p>
+        <h1 className="text-[22px] font-medium">文法・フレーズ</h1>
+        <p className="text-sm text-muted-foreground mt-1">登録済みの文法・フレーズを確認できます</p>
       </div>
 
       <Tabs defaultValue="grammar">

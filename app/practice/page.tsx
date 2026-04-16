@@ -1,57 +1,67 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { BookOpen, MessageSquare } from "lucide-react"
+import { BookOpen, MessageSquare, ChevronRight } from "lucide-react"
+
+function PracticeCard({
+  onClick,
+  icon,
+  iconBg,
+  iconColor,
+  title,
+  description,
+}: {
+  onClick: () => void
+  icon: React.ReactNode
+  iconBg: string
+  iconColor: string
+  title: string
+  description: string
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className="group w-full text-left flex items-center gap-4 rounded-[12px] border border-[var(--border-subtle,rgba(0,0,0,0.08))] bg-card px-5 py-4 hover:border-[var(--border-default,rgba(0,0,0,0.12))] hover:shadow-sm transition-all"
+    >
+      <div className={`rounded-[8px] p-2.5 shrink-0 ${iconBg}`}>
+        <span className={iconColor}>{icon}</span>
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-[16px] font-medium text-foreground">{title}</p>
+        <p className="text-[13px] text-muted-foreground mt-0.5">{description}</p>
+      </div>
+      <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0 opacity-0 group-hover:opacity-60 transition-opacity" />
+    </button>
+  )
+}
 
 export default function PracticePage() {
   const router = useRouter()
 
   return (
-    <div className="space-y-8 max-w-2xl">
+    <div className="space-y-6 max-w-xl">
       <div>
-        <h1 className="text-3xl font-bold">練習</h1>
-        <p className="text-muted-foreground mt-1">練習するカテゴリを選んでください</p>
+        <h1 className="text-[22px] font-medium">リピーティング</h1>
+        <p className="text-sm text-muted-foreground mt-1">練習するカテゴリを選んでください</p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Card
-          className="cursor-pointer bg-card border hover:border-blue-500 dark:hover:border-blue-400 hover:shadow-md transition-all group"
+      <div className="space-y-2">
+        <PracticeCard
           onClick={() => router.push("/repeating/grammar")}
-        >
-          <CardHeader>
-            <div className="flex items-center gap-3">
-              <div className="rounded-lg bg-blue-50 dark:bg-blue-900/30 p-3 group-hover:bg-blue-100 dark:group-hover:bg-blue-800/40 transition-colors shrink-0">
-                <BookOpen className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-              </div>
-              <CardTitle className="text-xl text-foreground">文法練習</CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <p className="text-base text-muted-foreground">
-              文法パターンをリピーティングで練習します
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card
-          className="cursor-pointer bg-card border hover:border-teal-500 dark:hover:border-teal-400 hover:shadow-md transition-all group"
+          icon={<BookOpen className="h-5 w-5" />}
+          iconBg="bg-accent"
+          iconColor="text-primary"
+          title="文法練習"
+          description="文法パターンをリピーティングで練習します"
+        />
+        <PracticeCard
           onClick={() => router.push("/repeating/expression")}
-        >
-          <CardHeader>
-            <div className="flex items-center gap-3">
-              <div className="rounded-lg bg-teal-50 dark:bg-teal-900/30 p-3 group-hover:bg-teal-100 dark:group-hover:bg-teal-800/40 transition-colors shrink-0">
-                <MessageSquare className="h-6 w-6 text-teal-600 dark:text-teal-400" />
-              </div>
-              <CardTitle className="text-xl text-foreground">フレーズ練習</CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <p className="text-base text-muted-foreground">
-              フレーズを会話形式で練習します
-            </p>
-          </CardContent>
-        </Card>
+          icon={<MessageSquare className="h-5 w-5" />}
+          iconBg="bg-[#F0FDFA] dark:bg-[#0D9488]/10"
+          iconColor="text-[#0D9488] dark:text-[#14B8A6]"
+          title="フレーズ練習"
+          description="フレーズを会話形式で練習します"
+        />
       </div>
     </div>
   )
