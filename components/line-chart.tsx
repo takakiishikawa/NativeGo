@@ -7,6 +7,7 @@ import {
   XAxis,
   Tooltip,
   ResponsiveContainer,
+  ReferenceLine,
 } from "recharts"
 
 export type LineChartSeries = { key: string; label: string; color: string }
@@ -53,12 +54,14 @@ export function LineChart({
   data,
   unit,
   emptyText = "データが溜まるとグラフが表示されます",
+  dailyBaseline,
 }: {
   title: string
   series: LineChartSeries[]
   data: LineChartPoint[]
   unit: string
   emptyText?: string
+  dailyBaseline?: number
 }) {
   const hasData = data.length > 0
 
@@ -100,6 +103,21 @@ export function LineChart({
                   isAnimationActive={false}
                 />
               ))}
+              {dailyBaseline != null && (
+                <ReferenceLine
+                  y={dailyBaseline}
+                  stroke="var(--text-tertiary, #A0A09D)"
+                  strokeDasharray="3 3"
+                  strokeWidth={1}
+                  label={{
+                    value: `目標 ${dailyBaseline}${unit}/日`,
+                    position: "insideTopLeft",
+                    fontSize: 9,
+                    fill: "var(--text-tertiary, #A0A09D)",
+                    dy: -4,
+                  }}
+                />
+              )}
               <XAxis
                 dataKey="label"
                 tick={{ fontSize: 10, fill: "var(--text-tertiary, #A0A09D)" }}

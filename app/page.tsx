@@ -277,24 +277,28 @@ export default async function HomePage() {
             ]}
             data={repeatingChartData}
             unit="回"
+            dailyBaseline={settings ? Math.round(settings.baseline_repeating / 7) : undefined}
           />
           <LineChart
             title="スピーキング（7日間）"
             series={[{ key: "count", label: "練習回数", color: COLORS.speaking.main }]}
             data={speakingChartData}
             unit="回"
+            dailyBaseline={settings ? Math.round(settings.baseline_speaking / 7) : undefined}
           />
           <LineChart
             title="Native Camp（7日間）"
             series={[{ key: "minutes", label: "学習時間", color: COLORS.grammar.main }]}
             data={ncChartData}
             unit="分"
+            dailyBaseline={settings ? Math.round(settings.baseline_nativecamp / 7) : undefined}
           />
           <LineChart
             title="シャドーイング（7日間）"
             series={[{ key: "minutes", label: "視聴時間", color: COLORS.shadowing.main }]}
             data={shadowingChartData}
             unit="分"
+            dailyBaseline={settings ? Math.round(settings.baseline_shadowing / 7) : undefined}
           />
           <LineChart
             title="NC AI Speaking Test スコア"
