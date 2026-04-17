@@ -309,7 +309,7 @@ export default function ShadowingPage() {
                     />
                   </div>
                   <span className="text-xs text-muted-foreground tabular-nums shrink-0">
-                    {doneCnt} / {allVideos.length} クリア
+                    {doneCnt} / {allVideos.length} 見た
                   </span>
                 </div>
               )}
@@ -319,7 +319,7 @@ export default function ShadowingPage() {
                 {(
                   [
                     { key: "todo", label: `これから (${todoCnt})` },
-                    { key: "done", label: `クリア (${doneCnt})` },
+                    { key: "done", label: `見た (${doneCnt})` },
                   ] as { key: Filter; label: string }[]
                 ).map(({ key, label }) => (
                   <button
@@ -340,7 +340,7 @@ export default function ShadowingPage() {
               {/* Video grid */}
               {filteredVideos.length === 0 ? (
                 <div className="text-center py-12 text-muted-foreground text-sm">
-                  {filter === "todo" ? "全部クリアしました！" : "まだクリアした動画がありません"}
+                  {filter === "todo" ? "全部見ました！" : "まだ見た動画がありません"}
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -512,7 +512,7 @@ function VideoCard({
               disabled={marking}
               className="rounded-md border border-[var(--border-default,rgba(0,0,0,0.12))] bg-transparent hover:bg-muted px-3 py-1 text-xs font-medium text-[var(--text-secondary,#6B6B68)] transition-colors disabled:opacity-50"
             >
-              {marking ? "記録中..." : `もう1周 (${video.lapCount + 1}周目)`}
+              {marking ? "記録中..." : `もう1回 (${video.lapCount + 1}回目)`}
             </button>
           ) : (
             <button
@@ -520,7 +520,7 @@ function VideoCard({
               disabled={marking}
               className="w-full rounded-md bg-primary hover:bg-primary/90 text-primary-foreground px-3 py-1.5 text-xs font-medium transition-colors disabled:opacity-50"
             >
-              {marking ? "記録中..." : "クリア！"}
+              {marking ? "記録中..." : "見た"}
             </button>
           )}
         </div>
