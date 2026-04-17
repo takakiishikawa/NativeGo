@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { NextRequest, NextResponse } from "next/server"
 
 export const maxDuration = 60
@@ -8,6 +9,7 @@ export async function POST(request: NextRequest) {
 
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
+  const admin = createAdminClient()
   if (!user) {
     console.error("[generate-images] 認証エラー: ユーザーなし")
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
@@ -94,7 +96,7 @@ Style: warm, simple illustration with clear panel borders between each frame. Ch
       const fileName = `${user.id}/${item.id}.${ext}`
 
       console.log(`[generate-images] Supabaseアップロード開始: ${fileName}`)
-      const { error: uploadError } = await supabase.storage
+      const { error: uploadError } = await admin.storage
         .from("speaking-images")
         .upload(fileName, buffer, { contentType: mimeType, upsert: true })
 
@@ -105,8 +107,8 @@ Style: warm, simple illustration with clear panel borders between each frame. Ch
       }
       console.log(`[generate-images] アップロード成功: ${fileName}`)
 
-      const { data: urlData } = supabase.storage.from("speaking-images").getPublicUrl(fileName)
-      await supabase.from("grammar").update({ image_url: urlData.publicUrl }).eq("id", item.id)
+      const { data: urlData } = admin.storage.from("speaking-images").getPublicUrl(fileName)
+      await admin.from("grammar").update({ image_url: urlData.publicUrl }).eq("id", item.id)
       console.log(`[generate-images] grammar.image_url 更新完了: ${item.name}`)
 
       results.push({ id: item.id, status: "ok" })
