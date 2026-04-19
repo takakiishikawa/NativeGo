@@ -196,7 +196,7 @@ function ResultContent() {
       )}
 
       {/* Score breakdown */}
-      <div className="rounded-xl border bg-card p-5 space-y-4">
+      <div className="rounded-lg border bg-card p-5 space-y-4">
         <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">スコア</p>
         {SCORE_LABELS.map((label, i) => (
           <ScoreBar key={label} label={label} score={data.scores[i] ?? 0} />
@@ -205,7 +205,7 @@ function ResultContent() {
 
       {/* Feedback */}
       {data.comment && (
-        <div className="rounded-xl border bg-card p-5 space-y-5">
+        <div className="rounded-lg border bg-card p-5 space-y-5">
           <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">スピーキングを改善しましょう</p>
 
           {sections ? (

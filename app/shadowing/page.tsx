@@ -452,7 +452,7 @@ function VideoCard({
       target="_blank"
       rel="noopener noreferrer"
       className={cn(
-        "group rounded-xl border border-[--color-border-subtle] bg-card overflow-hidden flex flex-col transition-all cursor-pointer",
+        "group rounded-lg border border-[--color-border-subtle] bg-card overflow-hidden flex flex-col transition-all cursor-pointer",
         "hover:border-[--color-border-default] hover:-translate-y-0.5"
       )}
     >
