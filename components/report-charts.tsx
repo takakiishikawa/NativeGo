@@ -103,17 +103,17 @@ const noRanges: never[] = []
 const xFmt = (v: string) => v
 
 const repeatingConfig: ChartConfig = {
-  grammar:    { label: "文法",     color: "var(--color-grammar)" },
-  expression: { label: "フレーズ", color: "#A5B4FC" },
+  grammar:    { label: "文法",     color: "var(--color-primary)" },
+  expression: { label: "フレーズ", color: "var(--color-primary-chart-2)" },
 }
 const speakingConfig: ChartConfig = {
-  speaking: { label: "スピーキング", color: "var(--color-grammar)" },
+  speaking: { label: "スピーキング", color: "var(--color-primary)" },
 }
 const ncConfig: ChartConfig = {
-  minutes: { label: "学習時間", color: "var(--color-grammar)" },
+  minutes: { label: "学習時間", color: "var(--color-primary)" },
 }
 const shadowingConfig: ChartConfig = {
-  minutes: { label: "視聴時間", color: "var(--color-grammar)" },
+  minutes: { label: "視聴時間", color: "var(--color-primary)" },
 }
 
 export function ReportCharts({ logs, ncLogs, youtubeLogs }: { logs: PracticeLog[]; ncLogs: NcLog[]; youtubeLogs: YoutubeLog[] }) {
