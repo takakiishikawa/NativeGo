@@ -1,3 +1,4 @@
+@import "@takaki/go-design-system/tokens.css";
 @import "tailwindcss";
 @import "react-day-picker/src/style.css";
 
