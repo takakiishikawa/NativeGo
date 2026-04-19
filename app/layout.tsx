@@ -45,7 +45,7 @@ export default async function RootLayout({
     >
       <head>
         <DarkModeInit />
-        <DesignTokens primaryColor="#E74C3C" primaryColorHover="#C0392B" />
+        <DesignTokens primaryColor="#0284C7" primaryColorHover="#0369A1" />
       </head>
       <body className="min-h-full">
         {user ? (

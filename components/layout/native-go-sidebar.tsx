@@ -44,7 +44,7 @@ import {
 } from "lucide-react"
 
 const GO_APPS = [
-  { name: "NativeGo",   url: "https://english-learning-app-black.vercel.app/",  color: "#E74C3C" },
+  { name: "NativeGo",   url: "https://english-learning-app-black.vercel.app/",  color: "#0284C7" },
   { name: "CareGo",     url: "https://care-go-mu.vercel.app/dashboard",          color: "#30A46C" },
   { name: "KenyakuGo",  url: "https://kenyaku-go.vercel.app/",                   color: "#F5A623" },
   { name: "TaskGo",     url: "https://taskgo-dun.vercel.app/",                   color: "#5E6AD2" },

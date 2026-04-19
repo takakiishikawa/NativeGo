@@ -35,6 +35,13 @@
   --rdp-day_button-height: 34px;  --rdp-day_button-width: 34px;
 }
 
+/* Fix: Tailwind v4 generates w-[--sidebar-width] as `width:--sidebar-width` (invalid).
+   Must be `width:var(--sidebar-width)` for the DS sidebar layout spacer to work. */
+.w-\[--sidebar-width\]      { width: var(--sidebar-width) !important; }
+.w-\[--sidebar-width-icon\] { width: var(--sidebar-width-icon) !important; }
+.group-data-\[collapsible\=offcanvas\]\:w-0:is(:where(.group)[data-collapsible=offcanvas] *) { width: 0; }
+.group-data-\[collapsible\=icon\]\:w-\[--sidebar-width-icon\]:is(:where(.group)[data-collapsible=icon] *) { width: var(--sidebar-width-icon) !important; }
+
 @layer utilities {
   .section-label {
     font-size: 13px;

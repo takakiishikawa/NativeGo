@@ -222,7 +222,7 @@ export function PracticeClient({
     <div className="space-y-2">
       {/* Header */}
       <div className="-mt-2 flex items-center justify-between gap-2">
-        <h1 className="font-semibold text-base line-clamp-1">{grammarName}</h1>
+        <h1 className="text-[25px] font-medium line-clamp-1">{grammarName}</h1>
         <span className="text-xs font-medium text-muted-foreground tabular-nums shrink-0">
           {completedCount} / {TOTAL_REQUIRED} 回
         </span>
