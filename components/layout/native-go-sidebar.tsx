@@ -44,7 +44,6 @@ import {
   LogOut,
   Sun,
   Moon,
-  Pencil,
   RefreshCcw,
   ChevronsUpDown,
   Check,
@@ -249,7 +248,6 @@ export function NativeGoSidebar() {
                   <AvatarFallback className="text-xs">{initials}</AvatarFallback>
                 </Avatar>
                 <span className="truncate flex-1 min-w-0">{displayName || "—"}</span>
-                <Pencil className="h-3.5 w-3.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
               </SidebarMenuButton>
             </SidebarMenuItem>
 

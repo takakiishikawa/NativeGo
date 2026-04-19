@@ -3,11 +3,13 @@
 import { useEffect, useState, useCallback, useRef } from "react"
 import { createClient } from "@/lib/supabase/client"
 import {
-  Button, Badge, Input, Textarea,
+  Button, Badge, Input, Textarea, Tag,
   Card, CardContent, CardHeader, CardTitle, CardDescription,
+  DataTable,
   Separator, Tabs, TabsContent, TabsList, TabsTrigger,
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@takaki/go-design-system"
+import type { ColumnDef } from "@tanstack/react-table"
 import { toast } from "sonner"
 import { saveGrammar, saveExpressions, updateLessonStatus } from "@/app/actions/practice"
 import type { Lesson, ExtractResult, ExtractedGrammar, ExtractedExpression } from "@/lib/types"
@@ -38,17 +40,13 @@ function sortLessons(lessons: Lesson[]): Lesson[] {
 
 // ─── Components ─────────────────────────────────────────────────────────────
 
-function StatusBadge({ status }: { status: Lesson["status"] }) {
-  const styles: Record<Lesson["status"], string> = {
-    未登録: "border-transparent bg-muted text-muted-foreground",
-    練習中: "border-transparent bg-[color:var(--color-warning-subtle)] text-[color:var(--color-warning)]",
-    習得済み: "border-transparent bg-[color:var(--color-success-subtle)] text-[color:var(--color-success)]",
+function StatusTag({ status }: { status: Lesson["status"] }) {
+  const colorMap: Record<Lesson["status"], "default" | "warning" | "success"> = {
+    未登録: "default",
+    練習中: "warning",
+    習得済み: "success",
   }
-  return (
-    <Badge variant="outline" className={styles[status]}>
-      {status}
-    </Badge>
-  )
+  return <Tag color={colorMap[status]}>{status}</Tag>
 }
 
 function StarRating({ value }: { value: number }) {
@@ -390,7 +388,58 @@ function AddModal({
   )
 }
 
-// ─── LessonList (view-only) ───────────────────────────────────────────────────
+// ─── LessonList (DataTable) ───────────────────────────────────────────────────
+
+type LessonRow = Lesson & { grammarStats: LessonStats; expressionStats: LessonStats }
+
+const lessonColumns: ColumnDef<LessonRow>[] = [
+  {
+    id: "lesson_no",
+    accessorKey: "lesson_no",
+    header: "No.",
+    cell: ({ row }) => (
+      <span className="font-mono text-xs text-muted-foreground">{row.original.lesson_no}</span>
+    ),
+  },
+  {
+    accessorKey: "topic",
+    header: "トピック",
+    cell: ({ row }) => <span className="text-sm">{row.original.topic}</span>,
+  },
+  {
+    id: "grammar",
+    header: "文法",
+    cell: ({ row }) => {
+      const g = row.original.grammarStats
+      if (g.total === 0) return <span className="text-xs text-muted-foreground">—</span>
+      return (
+        <span className="flex items-center gap-1 text-xs text-muted-foreground">
+          <BookOpen className="h-3 w-3" />
+          {g.done}/{g.total}
+        </span>
+      )
+    },
+  },
+  {
+    id: "expression",
+    header: "フレーズ",
+    cell: ({ row }) => {
+      const e = row.original.expressionStats
+      if (e.total === 0) return <span className="text-xs text-muted-foreground">—</span>
+      return (
+        <span className="flex items-center gap-1 text-xs text-muted-foreground">
+          <MessageSquare className="h-3 w-3" />
+          {e.done}/{e.total}
+        </span>
+      )
+    },
+  },
+  {
+    accessorKey: "status",
+    header: "ステータス",
+    cell: ({ row }) => <StatusTag status={row.original.status} />,
+  },
+]
 
 function LessonList({
   lessons,
@@ -401,49 +450,20 @@ function LessonList({
   grammarMap: Map<string, LessonStats>
   expressionMap: Map<string, LessonStats>
 }) {
-  if (lessons.length === 0) {
-    return (
-      <p className="text-sm text-muted-foreground py-8 text-center">
-        レッスンデータがありません
-      </p>
-    )
-  }
+  const rows: LessonRow[] = lessons.map((lesson) => ({
+    ...lesson,
+    grammarStats: grammarMap.get(lesson.id) ?? { total: 0, done: 0, started: 0 },
+    expressionStats: expressionMap.get(lesson.id) ?? { total: 0, done: 0, started: 0 },
+  }))
 
   return (
-    <div className="space-y-1">
-      {lessons.map((lesson) => {
-        const g = grammarMap.get(lesson.id) ?? { total: 0, done: 0, started: 0 }
-        const e = expressionMap.get(lesson.id) ?? { total: 0, done: 0, started: 0 }
-        return (
-          <div
-            key={lesson.id}
-            className="flex items-center gap-4 rounded-lg border bg-card px-4 py-3"
-          >
-            <span className="font-mono text-sm font-medium w-16 text-muted-foreground">
-              {lesson.lesson_no}
-            </span>
-            <span className="flex-1 text-sm">{lesson.topic}</span>
-            {(g.total > 0 || e.total > 0) && (
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                {g.total > 0 && (
-                  <span className="flex items-center gap-0.5">
-                    <BookOpen className="h-3 w-3" />
-                    {g.done}/{g.total}
-                  </span>
-                )}
-                {e.total > 0 && (
-                  <span className="flex items-center gap-0.5">
-                    <MessageSquare className="h-3 w-3" />
-                    {e.done}/{e.total}
-                  </span>
-                )}
-              </div>
-            )}
-            <StatusBadge status={lesson.status} />
-          </div>
-        )
-      })}
-    </div>
+    <DataTable
+      columns={lessonColumns}
+      data={rows}
+      searchable={{ columnId: "topic", placeholder: "トピックで検索..." }}
+      pageSize={20}
+      emptyMessage="レッスンデータがありません"
+    />
   )
 }
 
@@ -541,9 +561,9 @@ export default function TextsPage() {
                   {s.total}
                   <span className="text-base font-normal text-muted-foreground ml-1">件</span>
                 </span>
-                <Badge className="border-transparent bg-[color:var(--color-warning-subtle)] text-[color:var(--color-warning)]">練習中 {s.inProgress}</Badge>
-                <Badge className="border-transparent bg-[color:var(--color-success-subtle)] text-[color:var(--color-success)]">習得済み {s.done}</Badge>
-                <Badge className="border-transparent bg-muted text-muted-foreground">未登録 {s.unregistered}</Badge>
+                <Tag color="warning">練習中 {s.inProgress}</Tag>
+                <Tag color="success">習得済み {s.done}</Tag>
+                <Tag color="default">未登録 {s.unregistered}</Tag>
               </div>
               <Button size="sm" onClick={() => setShowAddModal(true)}>
                 <Plus className="mr-1.5 h-4 w-4" />

@@ -8,10 +8,11 @@
 
 /* NativeGo 固有セマンティックカラー（チャート等） */
 :root {
-  --color-grammar:  #5B6AF0;
-  --color-phrase:   #0D9488;
-  --color-speaking: #D97706;
-  --color-shadow:   #7C3AED;
+  --color-grammar:         #5B6AF0;
+  --color-phrase:          #0D9488;
+  --color-speaking:        #D97706;
+  --color-shadow:          #7C3AED;
+  --color-primary-chart-2: #38BDF8;
 }
 
 /* フォント設定 */

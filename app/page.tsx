@@ -77,7 +77,7 @@ function trendFromDiff(diff: number | null, unit: string): KpiCard["trend"] {
 
 function weeklyDesc(baseline: number | undefined, unit: string): string | undefined {
   if (!baseline || baseline <= 0) return undefined
-  return `週目標 ${baseline}${unit}`
+  return `今週 ${baseline}${unit}`
 }
 
 function weeklyProgress(value: number, baseline: number | undefined): number | undefined {
@@ -88,20 +88,20 @@ function weeklyProgress(value: number, baseline: number | undefined): number | u
 // ─── Chart configs ────────────────────────────────────────────────────────────
 
 const repeatingConfig: ChartConfig = {
-  grammar:    { label: "文法",     color: "var(--color-grammar)" },
-  expression: { label: "フレーズ", color: "#A5B4FC" },
+  grammar:    { label: "文法",     color: "var(--color-primary)" },
+  expression: { label: "フレーズ", color: "var(--color-primary-chart-2)" },
 }
 const speakingConfig: ChartConfig = {
-  count: { label: "練習回数", color: "var(--color-grammar)" },
+  count: { label: "練習回数", color: "var(--color-primary)" },
 }
 const ncConfig: ChartConfig = {
-  minutes: { label: "学習時間", color: "var(--color-grammar)" },
+  minutes: { label: "学習時間", color: "var(--color-primary)" },
 }
 const shadowingConfig: ChartConfig = {
-  minutes: { label: "視聴時間", color: "var(--color-grammar)" },
+  minutes: { label: "視聴時間", color: "var(--color-primary)" },
 }
 const scoreConfig: ChartConfig = {
-  score: { label: "スコア", color: "var(--color-grammar)" },
+  score: { label: "スコア", color: "var(--color-primary)" },
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
