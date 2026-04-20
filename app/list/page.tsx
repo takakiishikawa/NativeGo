@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo } from "react"
 import { createClient } from "@/lib/supabase/client"
 import {
-  Badge, DataTable,
+  Badge, DataTable, PageHeader,
   Dialog, DialogContent, DialogHeader, DialogTitle,
   Tabs, TabsContent, TabsList, TabsTrigger,
 } from "@takaki/go-design-system"
@@ -283,13 +283,10 @@ function PhraseTab() {
 export default function ListPage() {
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-[25px] font-medium">文法・フレーズ</h1>
-        <p className="text-sm text-muted-foreground mt-1">登録済みの文法・フレーズを確認できます</p>
-      </div>
+      <PageHeader title="文法・フレーズ" description="登録済みの文法・フレーズを確認できます" />
 
       <Tabs defaultValue="grammar">
-        <TabsList>
+        <TabsList variant="underline">
           <TabsTrigger value="grammar">文法</TabsTrigger>
           <TabsTrigger value="phrase">フレーズ</TabsTrigger>
         </TabsList>

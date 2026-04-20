@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 import Link from "next/link"
-import { Card, Badge } from "@takaki/go-design-system"
+import { Card, Badge, PageHeader } from "@takaki/go-design-system"
 import { GenerateImagesButton } from "./GenerateImagesButton"
 
 export default async function SpeakingPage() {
@@ -27,20 +27,18 @@ export default async function SpeakingPage() {
 
   return (
     <div className="space-y-6 max-w-4xl">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-[25px] font-medium">スピーキング</h1>
-          <p className="text-sm text-muted-foreground mt-1">画像を見ながら英語で説明する練習</p>
-        </div>
-        {allWithImages.length > 0 && (
+      <PageHeader
+        title="スピーキング"
+        description="画像を見ながら英語で説明する練習"
+        actions={allWithImages.length > 0 ? (
           <GenerateImagesButton
             items={allWithImages}
             force
             label="全画像を再生成"
             variant="outline"
           />
-        )}
-      </div>
+        ) : undefined}
+      />
 
       {/* Pending image generation banner */}
       {pending.length > 0 && (

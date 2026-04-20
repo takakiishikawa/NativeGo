@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import {
-  Button, Input,
+  Button, Input, FormActions,
   Dialog, DialogContent, DialogHeader, DialogTitle,
   DatePicker,
 } from "@takaki/go-design-system"
@@ -90,14 +90,10 @@ export function SpeakingScoreModal({
             </div>
           </div>
 
-          <div className="flex gap-3">
-            <Button variant="outline" onClick={onClose} className="flex-1">
-              キャンセル
-            </Button>
-            <Button onClick={handleSave} disabled={saving} className="flex-1">
-              {saving ? "保存中..." : "保存"}
-            </Button>
-          </div>
+          <FormActions>
+            <Button variant="outline" onClick={onClose}>キャンセル</Button>
+            <Button onClick={handleSave} disabled={saving}>{saving ? "保存中..." : "保存"}</Button>
+          </FormActions>
 
           {scores.length > 0 && (
             <div>

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Tabs, TabsList, TabsTrigger, TabsContent, ChartArea } from "@takaki/go-design-system"
+import { Tabs, TabsList, TabsTrigger, TabsContent, ChartArea, PageHeader } from "@takaki/go-design-system"
 import type { ChartConfig } from "@takaki/go-design-system"
 
 type PracticeLog = {
@@ -125,7 +125,7 @@ export function ReportCharts({ logs, ncLogs, youtubeLogs }: { logs: PracticeLog[
 
   return (
     <Tabs value={mode} onValueChange={(v) => setMode(v as "monthly" | "alltime")}>
-      <TabsList>
+      <TabsList variant="underline">
         <TabsTrigger value="monthly">月次</TabsTrigger>
         <TabsTrigger value="alltime">全期間</TabsTrigger>
       </TabsList>

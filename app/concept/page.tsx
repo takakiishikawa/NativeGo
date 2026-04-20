@@ -4,6 +4,7 @@ import { RefreshCcw } from "lucide-react"
 export default function ConceptRoute() {
   return (
     <ConceptPage
+      className="pt-0 px-0"
       productName="NativeGo"
       productLogo={
         <div className="flex items-center justify-center rounded-md bg-primary p-1.5">

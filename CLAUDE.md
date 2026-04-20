@@ -84,7 +84,7 @@ npm update @takaki/go-design-system
 ## このプロダクト固有のルール
 
 - プロダクト名：`NativeGo`
-- プライマリカラー：`#0284C7`（スカイブルー — 声を出す・空に向かって発信する英語アウトプットを体現）
+- プライマリカラー：`#0052CC`（Atlassianブルー — 洗練された青。Goシリーズの共通デザイン哲学に準拠）
 - ドメイン：`native-go.vercel.app`
 - 外部連携：Supabase（DB・Auth）、Anthropic API（AI文法・フレーズ解析）
 

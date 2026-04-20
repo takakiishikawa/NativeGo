@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from "react"
 import { createClient } from "@/lib/supabase/client"
 import {
-  Button, Badge, Input, Textarea, Tag,
+  Button, Badge, Input, Textarea, Tag, PageHeader, FormActions,
   Card, CardContent, CardHeader, CardTitle, CardDescription,
   DataTable,
   Separator, Tabs, TabsContent, TabsList, TabsTrigger,
@@ -537,15 +537,19 @@ export default function TextsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-[25px] font-medium">テキスト</h1>
-        <p className="text-muted-foreground mt-1">
-          レッスンごとの文法・フレーズ登録状況
-        </p>
-      </div>
+      <PageHeader
+        title="テキスト"
+        description="レッスンごとの文法・フレーズ登録状況"
+        actions={
+          <Button size="sm" onClick={() => setShowAddModal(true)}>
+            <Plus className="mr-1.5 h-4 w-4" />
+            テキスト追加
+          </Button>
+        }
+      />
 
       <Tabs defaultValue="1">
-        <TabsList>
+        <TabsList variant="underline">
           <TabsTrigger value="1">Level 1</TabsTrigger>
           <TabsTrigger value="2">Level 2</TabsTrigger>
           <TabsTrigger value="3">Level 3</TabsTrigger>
@@ -555,20 +559,14 @@ export default function TextsPage() {
           const s = levelStatusSummary(lvl)
           return (
           <TabsContent key={lvl} value={String(lvl)} className="space-y-3 mt-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <span className="text-2xl font-bold">
-                  {s.total}
-                  <span className="text-base font-normal text-muted-foreground ml-1">件</span>
-                </span>
-                <Tag color="warning">練習中 {s.inProgress}</Tag>
-                <Tag color="success">習得済み {s.done}</Tag>
-                <Tag color="default">未登録 {s.unregistered}</Tag>
-              </div>
-              <Button size="sm" onClick={() => setShowAddModal(true)}>
-                <Plus className="mr-1.5 h-4 w-4" />
-                テキスト追加
-              </Button>
+            <div className="flex items-center gap-3">
+              <span className="text-2xl font-bold">
+                {s.total}
+                <span className="text-base font-normal text-muted-foreground ml-1">件</span>
+              </span>
+              <Tag color="warning">練習中 {s.inProgress}</Tag>
+              <Tag color="success">習得済み {s.done}</Tag>
+              <Tag color="default">未登録 {s.unregistered}</Tag>
             </div>
             <LessonList
               lessons={byLevel(lvl)}

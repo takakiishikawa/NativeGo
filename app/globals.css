@@ -12,7 +12,15 @@
   --color-phrase:          #0D9488;
   --color-speaking:        #D97706;
   --color-shadow:          #7C3AED;
-  --color-primary-chart-2: #38BDF8;
+  --color-primary-chart-2: #6699FF;
+}
+
+/* ベースカラー — ダークモードで見出しが消えないよう本文色を継承させる */
+@layer base {
+  body {
+    color: var(--foreground);
+    background-color: var(--background);
+  }
 }
 
 /* フォント設定 */

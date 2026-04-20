@@ -50,7 +50,7 @@ import {
 } from "lucide-react"
 
 const GO_APPS = [
-  { name: "NativeGo",   url: "https://english-learning-app-black.vercel.app/",  color: "#0284C7" },
+  { name: "NativeGo",   url: "https://english-learning-app-black.vercel.app/",  color: "#0052CC" },
   { name: "CareGo",     url: "https://care-go-mu.vercel.app/dashboard",          color: "#30A46C" },
   { name: "KenyakuGo",  url: "https://kenyaku-go.vercel.app/",                   color: "#F5A623" },
   { name: "TaskGo",     url: "https://taskgo-dun.vercel.app/",                   color: "#5E6AD2" },
@@ -314,9 +314,11 @@ export function NativeGoSidebar() {
               <Input value={editName} onChange={(e) => setEditName(e.target.value)} placeholder="表示名を入力" />
             </div>
             {uploadError && <p className="text-xs text-destructive">{uploadError}</p>}
-            <Button onClick={handleSave} disabled={saving} className="w-full">
-              {saving ? "保存中..." : "保存"}
-            </Button>
+            <div className="flex justify-end">
+              <Button onClick={handleSave} disabled={saving}>
+                {saving ? "保存中..." : "保存"}
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

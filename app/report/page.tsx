@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
+import { PageHeader } from "@takaki/go-design-system"
 import { ReportCharts } from "@/components/report-charts"
 export default async function ReportPage() {
   const supabase = await createClient()
@@ -38,10 +39,7 @@ export default async function ReportPage() {
 
   return (
     <div className="space-y-8 max-w-4xl">
-      <div>
-        <h1 className="text-[25px] font-medium">レポート</h1>
-        <p className="text-sm text-muted-foreground mt-1">学習データの集計・推移</p>
-      </div>
+      <PageHeader title="レポート" description="学習データの集計・推移" />
 
       <ReportCharts logs={logs} ncLogs={ncLogs} youtubeLogs={youtubeLogs} />
     </div>

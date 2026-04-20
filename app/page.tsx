@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 import Link from "next/link"
-import { SectionCards, type KpiCard, type ChartConfig } from "@takaki/go-design-system"
+import { SectionCards, PageHeader, type KpiCard, type ChartConfig } from "@takaki/go-design-system"
 import { DashboardChart } from "@/components/dashboard-chart"
 import { MetricModals } from "@/components/metric-modals"
 import { DashboardAutoCheck } from "@/components/dashboard-auto-check"
@@ -11,30 +11,14 @@ import type { SpeakingScore } from "@/lib/types"
 
 // ─── CTACard (inline, CTA向けカード) ────────────────────────────────────────
 
-function CTACard({
-  href,
-  icon,
-  iconBg,
-  iconColor,
-  label,
-  sub,
-}: {
-  href: string
-  icon: React.ReactNode
-  iconBg: string
-  iconColor: string
-  label: string
-  sub: string
-}) {
+function CTACard({ href, icon, label, sub }: { href: string; icon: React.ReactNode; label: string; sub: string }) {
   return (
     <Link href={href}>
       <div className="group flex items-center gap-3 rounded-lg border border-[var(--color-border-subtle)] bg-card px-4 py-3 hover:border-[var(--color-border-default)] hover:shadow-sm transition-all cursor-pointer">
-        <div className={`rounded-lg p-2 shrink-0 transition-colors ${iconBg}`}>
-          <span className={iconColor}>{icon}</span>
-        </div>
+        <span className="shrink-0 text-muted-foreground">{icon}</span>
         <div className="min-w-0 flex-1">
           <p className="text-[16px] font-medium text-foreground">{label}</p>
-          <p className="text-[15px] text-muted-foreground mt-0.5">{sub}</p>
+          <p className="text-sm text-muted-foreground mt-0.5">{sub}</p>
         </div>
         <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
       </div>
@@ -82,7 +66,7 @@ function weeklyDesc(value: number, baseline: number | undefined): string | undef
 
 function weeklyProgress(value: number, baseline: number | undefined): number | undefined {
   if (!baseline || baseline <= 0) return undefined
-  return Math.min(Math.round((value / baseline) * 100), 100)
+  return Math.round((value / baseline) * 100)
 }
 
 // ─── Chart configs ────────────────────────────────────────────────────────────
@@ -328,54 +312,27 @@ export default async function HomePage() {
       )}
 
       <div>
-        <h1 className="text-[25px] font-medium">ダッシュボード</h1>
-        <p className="text-sm text-muted-foreground mt-1">学習進捗のまとめ</p>
+        <PageHeader title="ダッシュボード" description="学習進捗のまとめ" />
       </div>
 
       {/* 練習を始める */}
       <div>
         <h2 className="section-label">練習を始める</h2>
         <div className="grid grid-cols-2 gap-2">
-          <CTACard
-            href="/repeating/grammar"
-            icon={<BookOpen className="h-4 w-4" />}
-            iconBg="bg-accent"
-            iconColor="text-primary"
-            label="文法リピーティング"
-            sub={`練習中 ${grammarsInProgress} / 完了 ${grammarDone}`}
-          />
-          <CTACard
-            href="/repeating/expression"
-            icon={<MessageSquare className="h-4 w-4" />}
-            iconBg="bg-[color:var(--color-phrase)]/10"
-            iconColor="text-[color:var(--color-phrase)]"
-            label="フレーズリピーティング"
-            sub={`練習中 ${expressionsInProgress} / 完了 ${expressionDone}`}
-          />
-          <CTACard
-            href="/speaking"
-            icon={<Mic className="h-4 w-4" />}
-            iconBg="bg-[color:var(--color-speaking)]/10"
-            iconColor="text-[color:var(--color-speaking)]"
-            label="スピーキング"
-            sub={`練習中 ${speakingInProgress} / 完了 ${speakingDone}`}
-          />
-          <CTACard
-            href="/shadowing"
-            icon={<Play className="h-4 w-4" />}
-            iconBg="bg-destructive/10"
-            iconColor="text-destructive"
-            label="シャドーイング"
-            sub="YouTubeで練習する"
-          />
+          <CTACard href="/repeating/grammar" icon={<BookOpen className="h-4 w-4" />} label="文法リピーティング" sub={`練習中 ${grammarsInProgress} / 完了 ${grammarDone}`} />
+          <CTACard href="/repeating/expression" icon={<MessageSquare className="h-4 w-4" />} label="フレーズリピーティング" sub={`練習中 ${expressionsInProgress} / 完了 ${expressionDone}`} />
+          <CTACard href="/speaking" icon={<Mic className="h-4 w-4" />} label="スピーキング" sub={`練習中 ${speakingInProgress} / 完了 ${speakingDone}`} />
+          <CTACard href="/shadowing" icon={<Play className="h-4 w-4" />} label="シャドーイング" sub="YouTubeで練習する" />
         </div>
       </div>
 
       {/* 学習ログ */}
       <div className="space-y-4">
-        <h2 className="section-label">学習ログ</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="section-label mb-0">学習ログ</h2>
+          <MetricModals initialScores={scores} />
+        </div>
         <SectionCards cards={kpiCards} />
-        <MetricModals initialScores={scores} />
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           <DashboardChart
             title="リピーティング（7日間）"

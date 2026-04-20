@@ -45,8 +45,8 @@ export default async function RootLayout({
     >
       <head>
         <DarkModeInit />
-        <DesignTokens primaryColor="#0284C7" primaryColorHover="#0369A1" />
-        <style dangerouslySetInnerHTML={{ __html: `:root{--sidebar-accent:199 100% 93%;--sidebar-accent-foreground:205 91% 28%}.dark{--sidebar-accent:205 60% 17%;--sidebar-accent-foreground:200 97% 86%}` }} />
+        <DesignTokens primaryColor="#0052CC" primaryColorHover="#0747A6" />
+        <style dangerouslySetInnerHTML={{ __html: `:root{--sidebar-accent:214 100% 95%;--sidebar-accent-foreground:218 96% 28%}.dark{--sidebar-accent:218 55% 16%;--sidebar-accent-foreground:218 65% 82%}` }} />
       </head>
       <body className="min-h-full">
         {user ? (

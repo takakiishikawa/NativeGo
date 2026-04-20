@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Button, Textarea, Card, CardContent, CardHeader, CardTitle, CardDescription, Badge, Separator } from "@takaki/go-design-system"
+import { Button, Textarea, Card, CardContent, CardHeader, CardTitle, CardDescription, Badge, Separator, PageHeader } from "@takaki/go-design-system"
 import { toast } from "sonner"
 import { saveGrammar, saveExpressions } from "@/app/actions/practice"
 import type { ExtractResult, ExtractedGrammar, ExtractedExpression } from "@/lib/types"
@@ -157,15 +157,10 @@ export default function AddPage() {
 
   return (
     <div className="space-y-6 max-w-3xl">
-      <div>
-        <h1 className="text-[25px] font-medium">教材追加</h1>
-        <p className="text-muted-foreground mt-1">
-          Native Campの教材テキストを貼り付けてください
-        </p>
-        <p className="text-xs text-muted-foreground mt-0.5">
-          保存後、スピーキング練習用の画像が自動生成されます（1〜2分程度）
-        </p>
-      </div>
+      <PageHeader
+        title="教材追加"
+        description="Native Campの教材テキストを貼り付けてください。保存後、スピーキング練習用の画像が自動生成されます（1〜2分程度）。"
+      />
 
       <div className="space-y-3">
         <Textarea

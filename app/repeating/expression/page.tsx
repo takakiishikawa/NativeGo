@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
-import { Button, Card, CardContent, CardHeader, CardTitle, Badge, Slider } from "@takaki/go-design-system"
+import { Button, Card, CardContent, CardHeader, CardTitle, Badge, Slider, PageHeader } from "@takaki/go-design-system"
 import { incrementExpressionPlayCount } from "@/app/actions/practice"
 import type { Expression } from "@/lib/types"
 import { Play, Square, ChevronLeft, ChevronRight, Star, CheckCircle2, Loader2, ArrowRight } from "lucide-react"
@@ -239,26 +239,24 @@ export default function ExpressionRepeatingPage() {
   return (
     <>
       <div className="space-y-6 max-w-2xl">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-[25px] font-medium">フレーズリピーティング</h1>
-            <p className="text-muted-foreground mt-1">
-              {index + 1} / {items.length} 件
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => { stopSpeech(); router.push("/practice") }}
-            >
-              途中終了
-            </Button>
-            <Badge variant="secondary" className="text-lg px-3 py-1">
-              {current?.play_count} / 10 回
-            </Badge>
-          </div>
-        </div>
+        <PageHeader
+          title="フレーズリピーティング"
+          description={`${index + 1} / ${items.length} 件`}
+          actions={
+            <div className="flex items-center gap-3">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => { stopSpeech(); router.push("/practice") }}
+              >
+                途中終了
+              </Button>
+              <Badge variant="secondary" className="text-lg px-3 py-1">
+                {current?.play_count} / 10 回
+              </Badge>
+            </div>
+          }
+        />
 
         <Card>
           <CardHeader>

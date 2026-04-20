@@ -3,7 +3,7 @@
 import { useEffect, useState, useTransition } from "react"
 import { createClient } from "@/lib/supabase/client"
 import {
-  Badge,
+  Badge, PageHeader,
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
   Tabs, TabsContent, TabsList, TabsTrigger,
@@ -118,10 +118,7 @@ export default function LessonsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-[25px] font-medium">レッスン管理</h1>
-        <p className="text-muted-foreground mt-1">受講状況の管理</p>
-      </div>
+      <PageHeader title="レッスン管理" description="受講状況の管理" />
 
       <Tabs defaultValue="1">
         <TabsList>

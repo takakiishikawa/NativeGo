@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react"
 import { createClient } from "@/lib/supabase/client"
 import {
-  Button, Input,
+  Button, Input, PageHeader, FormActions,
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@takaki/go-design-system"
 import { Plus, ExternalLink, CheckCircle, Archive, ArchiveRestore, ChevronDown, Trash2 } from "lucide-react"
@@ -196,17 +196,16 @@ export default function ShadowingPage() {
 
   return (
     <div className="space-y-6 max-w-5xl">
-      {/* Header */}
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-[25px] font-medium">シャドーイング</h1>
-          <p className="text-sm text-muted-foreground mt-1">YouTubeでシャドーイング練習を管理する</p>
-        </div>
-        <Button onClick={() => setShowAddModal(true)} className="gap-2">
-          <Plus className="h-4 w-4" />
-          チャンネルを追加
-        </Button>
-      </div>
+      <PageHeader
+        title="シャドーイング"
+        description="YouTubeでシャドーイング練習を管理する"
+        actions={
+          <Button onClick={() => setShowAddModal(true)} size="sm">
+            <Plus className="h-4 w-4 mr-1.5" />
+            チャンネルを追加
+          </Button>
+        }
+      />
 
       {loading ? (
         <div className="text-muted-foreground text-sm">読み込み中...</div>
@@ -403,13 +402,14 @@ export default function ShadowingPage() {
               </p>
             </div>
             {fetchError && <p className="text-sm text-destructive">{fetchError}</p>}
-            <Button
-              onClick={handleFetchChannel}
-              disabled={fetching || !channelUrl.trim()}
-              className="w-full"
-            >
-              {fetching ? "取得中..." : "動画を取得する"}
-            </Button>
+            <FormActions>
+              <Button
+                onClick={handleFetchChannel}
+                disabled={fetching || !channelUrl.trim()}
+              >
+                {fetching ? "取得中..." : "動画を取得する"}
+              </Button>
+            </FormActions>
           </div>
         </DialogContent>
       </Dialog>
@@ -523,12 +523,7 @@ function VideoCard({
               {marking ? "記録中..." : `もう1回 (${video.lapCount + 1}回目)`}
             </Button>
           ) : (
-            <Button
-              size="sm"
-              onClick={handleComplete}
-              disabled={marking}
-              className="w-full"
-            >
+            <Button size="sm" onClick={handleComplete} disabled={marking}>
               {marking ? "記録中..." : "見た"}
             </Button>
           )}

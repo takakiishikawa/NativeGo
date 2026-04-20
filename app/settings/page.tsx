@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
-import { Button, Input, SettingsGroup, SettingsItem } from "@takaki/go-design-system"
+import { Button, Input, SettingsGroup, SettingsItem, PageHeader } from "@takaki/go-design-system"
 import { toast } from "sonner"
 
 const DEFAULTS = {
@@ -82,9 +82,7 @@ export default function SettingsRoute() {
 
   return (
     <div className="space-y-8 max-w-lg">
-      <div>
-        <h1 className="text-[25px] font-medium">設定</h1>
-      </div>
+      <PageHeader title="設定" />
 
       <SettingsGroup
         title="ベースライン"
@@ -103,9 +101,11 @@ export default function SettingsRoute() {
         <SettingsItem label="受検日" control={<NumberInput fieldKey="speaking_test_day" unit="日" />} />
       </SettingsGroup>
 
-      <Button onClick={handleSave} disabled={saving} className="w-full">
-        {saving ? "保存中..." : "保存する"}
-      </Button>
+      <div className="flex justify-end">
+        <Button onClick={handleSave} disabled={saving}>
+          {saving ? "保存中..." : "保存する"}
+        </Button>
+      </div>
     </div>
   )
 }

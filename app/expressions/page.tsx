@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo } from "react"
 import { createClient } from "@/lib/supabase/client"
 import {
-  Badge, DataTable,
+  Badge, DataTable, PageHeader,
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@takaki/go-design-system"
 import type { ColumnDef } from "@tanstack/react-table"
@@ -91,13 +91,15 @@ export default function ExpressionsPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-[25px] font-medium">フレーズ一覧</h1>
-        <span className="text-2xl font-bold">
-          {items.length}
-          <span className="text-base font-normal text-muted-foreground ml-1">件</span>
-        </span>
-      </div>
+      <PageHeader
+        title="フレーズ一覧"
+        actions={
+          <span className="text-2xl font-bold">
+            {items.length}
+            <span className="text-base font-normal text-muted-foreground ml-1">件</span>
+          </span>
+        }
+      />
 
       <DataTable
         columns={columns}

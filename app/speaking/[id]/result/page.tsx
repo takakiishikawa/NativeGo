@@ -3,7 +3,7 @@
 import { useEffect, useState, Suspense } from "react"
 import { useSearchParams, useParams, useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
-import { Button } from "@takaki/go-design-system"
+import { Button, PageHeader } from "@takaki/go-design-system"
 import { Loader2, CheckCircle2, Volume2, BookOpen } from "lucide-react"
 
 const SCORE_LABELS = ["語彙", "文法", "流暢さ", "発音"]
@@ -181,12 +181,10 @@ function ResultContent() {
 
   return (
     <div className="max-w-lg mx-auto space-y-5">
-      <div>
-        <h1 className="text-[25px] font-medium">評価結果</h1>
-        {data.grammar && (
-          <p className="text-base text-muted-foreground mt-0.5">{data.grammar.name}</p>
-        )}
-      </div>
+      <PageHeader
+        title="評価結果"
+        description={data.grammar?.name}
+      />
 
       {/* Thumbnail */}
       {data.grammar?.image_url && (
