@@ -549,7 +549,7 @@ export default function TextsPage() {
       />
 
       <Tabs defaultValue="1">
-        <TabsList variant="underline">
+        <TabsList>
           <TabsTrigger value="1">Level 1</TabsTrigger>
           <TabsTrigger value="2">Level 2</TabsTrigger>
           <TabsTrigger value="3">Level 3</TabsTrigger>

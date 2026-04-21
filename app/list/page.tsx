@@ -286,7 +286,7 @@ export default function ListPage() {
       <PageHeader title="文法・フレーズ" description="登録済みの文法・フレーズを確認できます" />
 
       <Tabs defaultValue="grammar">
-        <TabsList variant="underline">
+        <TabsList>
           <TabsTrigger value="grammar">文法</TabsTrigger>
           <TabsTrigger value="phrase">フレーズ</TabsTrigger>
         </TabsList>

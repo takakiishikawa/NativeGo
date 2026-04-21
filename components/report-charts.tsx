@@ -125,7 +125,7 @@ export function ReportCharts({ logs, ncLogs, youtubeLogs }: { logs: PracticeLog[
 
   return (
     <Tabs value={mode} onValueChange={(v) => setMode(v as "monthly" | "alltime")}>
-      <TabsList variant="underline">
+      <TabsList>
         <TabsTrigger value="monthly">月次</TabsTrigger>
         <TabsTrigger value="alltime">全期間</TabsTrigger>
       </TabsList>
