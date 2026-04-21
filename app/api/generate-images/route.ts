@@ -57,16 +57,20 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-      const imagePrompt = `A 2x2 comic-style illustration with 4 panels showing a short story in Ho Chi Minh City that naturally demonstrates the grammar point: ${item.name}.
+      const imagePrompt = `A 2x2 four-panel comic strip set in Ho Chi Minh City.
+Each panel is numbered 1-4 in the top-left corner of the panel itself.
+The story naturally demonstrates the grammar point: ${item.name}.
 
-Panel layout (2 columns, 2 rows):
-- Top-left: Scene setting, introducing characters and situation
-- Top-right: Something happens that requires ${item.name}
-- Bottom-left: Characters interact using ${item.name} naturally
-- Bottom-right: Resolution or reaction
+Panel 1 (top-left): Establishing the scene and characters.
+Panel 2 (top-right): A situation arises.
+Panel 3 (bottom-left): Characters interact or react.
+Panel 4 (bottom-right): Resolution.
 
-Style: warm, simple illustration with clear panel borders between each frame. Characters should be consistent across all 4 panels.
-No text, no speech bubbles, no written words in any language, no letters, no numbers anywhere in the image.`
+CRITICAL: Absolutely NO text, NO speech bubbles, NO captions,
+NO labels, NO written words of ANY kind anywhere in the image.
+The ONLY text allowed is the single digit panel numbers
+(1, 2, 3, 4) inside each panel corner.
+Warm illustration style, clean lines, no photorealism.`
 
       console.log(`[generate-images] Imagen API呼び出し中: ${item.name}`)
 
