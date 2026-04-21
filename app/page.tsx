@@ -14,8 +14,10 @@ import type { SpeakingScore } from "@/lib/types"
 function CTACard({ href, icon, label, sub }: { href: string; icon: React.ReactNode; label: string; sub: string }) {
   return (
     <Link href={href}>
-      <div className="group flex items-center gap-3 rounded-lg border border-[var(--color-border-subtle)] bg-card px-4 py-3 hover:border-[var(--color-border-default)] hover:shadow-sm transition-all cursor-pointer">
-        <span className="shrink-0 text-muted-foreground">{icon}</span>
+      <div className="group flex items-center gap-3 rounded-lg border border-[var(--color-border-default)] bg-card px-4 py-3 shadow-sm hover:border-[var(--color-border-strong)] hover:shadow-md transition-all cursor-pointer">
+        <span className="shrink-0 flex items-center justify-center rounded-md bg-[var(--color-surface-subtle)] p-2 text-muted-foreground">
+          {icon}
+        </span>
         <div className="min-w-0 flex-1">
           <p className="text-[16px] font-medium text-foreground">{label}</p>
           <p className="text-sm text-muted-foreground mt-0.5">{sub}</p>
@@ -268,7 +270,7 @@ export default async function HomePage() {
       trend: trendFromDiff(shadowingDiff, "分"),
     },
     {
-      title: "AI Speaking Test",
+      title: "NC AI Speaking Test",
       value: latestScore !== null ? `${latestScore}点` : "未記録",
       trend: scoreDiff !== null ? {
         value: `前回比 ${scoreDiff >= 0 ? "+" : ""}${scoreDiff}点`,
@@ -377,6 +379,7 @@ export default async function HomePage() {
             xKey="label"
             yKeys={["score"]}
             unit="点"
+            yDomain={[0, 100]}
             emptyText="スコアを記録するとグラフが表示されます"
           />
         </div>

@@ -16,11 +16,11 @@ export function MetricModals({ initialScores }: { initialScores: SpeakingScore[]
       <div className="flex gap-2">
         <Button variant="ghost" size="sm" onClick={() => setNcOpen(true)} className="gap-1.5 text-muted-foreground">
           <Pencil className="h-3.5 w-3.5" />
-          Native Camp記録
+          Native Camp
         </Button>
         <Button variant="ghost" size="sm" onClick={() => setScoreOpen(true)} className="gap-1.5 text-muted-foreground">
           <Pencil className="h-3.5 w-3.5" />
-          Speakingスコア
+          NC AI Speaking Test
         </Button>
       </div>
       <NativeCampModal open={ncOpen} onClose={() => setNcOpen(false)} />

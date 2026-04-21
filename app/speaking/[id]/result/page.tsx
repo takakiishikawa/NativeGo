@@ -4,9 +4,16 @@ import { useEffect, useState, Suspense } from "react"
 import { useSearchParams, useParams, useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { Button, PageHeader } from "@takaki/go-design-system"
-import { Loader2, CheckCircle2, Volume2, BookOpen } from "lucide-react"
+import { Loader2, CheckCircle2, Volume2, BookOpen, MessageSquare, TrendingUp } from "lucide-react"
 
 const SCORE_LABELS = ["語彙", "文法", "流暢さ", "発音"]
+
+function getScoreLabel(score: number): { label: string; color: string } {
+  if (score >= 90) return { label: "非常に自然", color: "text-[color:var(--color-success)]" }
+  if (score >= 75) return { label: "概ね自然", color: "text-[color:var(--color-grammar)]" }
+  if (score >= 60) return { label: "伝わるが改善の余地あり", color: "text-[color:var(--color-warning)]" }
+  return { label: "要練習", color: "text-destructive" }
+}
 
 function getSection(raw: string, tag: string) {
   const m = raw.match(new RegExp(`\\[${tag}\\]([\\s\\S]*?)(?=\\[|$)`))
@@ -18,6 +25,7 @@ function parseComment(raw: string) {
   if (!good) return null
   return {
     good,
+    improve: getSection(raw, "IMPROVE"),
     grammarBefore: getSection(raw, "GRAMMAR_BEFORE"),
     grammarAfter: getSection(raw, "GRAMMAR_AFTER"),
     phraseBefore: getSection(raw, "PHRASE_BEFORE"),
@@ -73,27 +81,36 @@ function BeforeAfterCard({ before, after, type }: { before: string | null; after
 function SpeakButton({ text }: { text: string }) {
   const [speaking, setSpeaking] = useState(false)
 
-  function speak() {
-    if (typeof window === "undefined" || !window.speechSynthesis) return
-    window.speechSynthesis.cancel()
-    const u = new SpeechSynthesisUtterance(text)
-    u.lang = "en-US"
-    u.rate = 0.9
-    u.onstart = () => setSpeaking(true)
-    u.onend = () => setSpeaking(false)
-    u.onerror = () => setSpeaking(false)
-    window.speechSynthesis.speak(u)
+  async function speak() {
+    if (speaking) return
+    setSpeaking(true)
+    try {
+      const res = await fetch("/api/tts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text, rate: 0.9 }),
+      })
+      if (!res.ok) { setSpeaking(false); return }
+      const { audioContent } = await res.json()
+      const audio = new Audio(`data:audio/mp3;base64,${audioContent}`)
+      audio.onended = () => setSpeaking(false)
+      audio.onerror = () => setSpeaking(false)
+      audio.play().catch(() => setSpeaking(false))
+    } catch {
+      setSpeaking(false)
+    }
   }
 
   return (
     <button
       onClick={speak}
+      disabled={speaking}
       className={`flex-shrink-0 p-1.5 rounded-full transition-colors ${
         speaking ? "text-[color:var(--color-grammar)]" : "text-muted-foreground hover:text-foreground"
       }`}
       aria-label="音声を再生"
     >
-      <Volume2 className="h-4 w-4" />
+      {speaking ? <Loader2 className="h-4 w-4 animate-spin" /> : <Volume2 className="h-4 w-4" />}
     </button>
   )
 }
@@ -102,6 +119,7 @@ type LogData = {
   scores: number[]
   total_score: number
   comment: string
+  speech_text: string
   grammar: { name: string; summary: string; image_url: string | null } | null
 }
 
@@ -121,7 +139,7 @@ function ResultContent() {
 
     supabase
       .from("speaking_logs")
-      .select("scores, total_score, comment, grammar:grammar_id(name, summary, image_url)")
+      .select("scores, total_score, comment, speech_text, grammar:grammar_id(name, summary, image_url)")
       .eq("id", logId)
       .single()
       .then(({ data: log }) => {
@@ -130,6 +148,7 @@ function ResultContent() {
           scores: log.scores as number[],
           total_score: log.total_score,
           comment: log.comment,
+          speech_text: (log.speech_text as string) ?? "",
           grammar: Array.isArray(log.grammar) ? log.grammar[0] : log.grammar as LogData["grammar"],
         })
         setLoading(false)
@@ -178,82 +197,127 @@ function ResultContent() {
   if (!data) return null
 
   const sections = parseComment(data.comment)
+  const avgScore = data.total_score
+  const scoreLabel = getScoreLabel(avgScore)
+  const hasBeforeAfter =
+    (sections?.grammarBefore && sections.grammarBefore !== "-" && sections?.grammarAfter && sections.grammarAfter !== "-") ||
+    (sections?.phraseBefore && sections.phraseBefore !== "-" && sections?.phraseAfter && sections.phraseAfter !== "-")
 
   return (
-    <div className="max-w-lg mx-auto space-y-5">
+    <div className="max-w-4xl space-y-5">
       <PageHeader
         title="評価結果"
         description={data.grammar?.name}
       />
 
-      {/* Thumbnail */}
-      {data.grammar?.image_url && (
-        <div className="rounded-xl overflow-hidden aspect-[4/3] bg-muted w-40">
-          <img src={data.grammar.image_url} alt="" className="w-full h-full object-contain" />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        {/* Left column */}
+        <div className="space-y-5">
+          {/* Thumbnail */}
+          {data.grammar?.image_url && (
+            <div className="rounded-xl overflow-hidden bg-muted w-full aspect-[4/3]">
+              <img src={data.grammar.image_url} alt="" className="w-full h-full object-contain" />
+            </div>
+          )}
+
+          {/* Total score */}
+          <div className="rounded-lg border bg-card p-5 flex items-center justify-between">
+            <div>
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">総合スコア</p>
+              <p className={`text-sm font-medium ${scoreLabel.color}`}>{scoreLabel.label}</p>
+            </div>
+            <p className="text-4xl font-bold tabular-nums">
+              {avgScore}
+              <span className="text-base font-normal text-muted-foreground"> / 100</span>
+            </p>
+          </div>
+
+          {/* Score breakdown */}
+          <div className="rounded-lg border bg-card p-5 space-y-4">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">内訳</p>
+            {SCORE_LABELS.map((label, i) => (
+              <ScoreBar key={label} label={label} score={data.scores[i] ?? 0} />
+            ))}
+          </div>
         </div>
-      )}
 
-      {/* Score breakdown */}
-      <div className="rounded-lg border bg-card p-5 space-y-4">
-        <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">スコア</p>
-        {SCORE_LABELS.map((label, i) => (
-          <ScoreBar key={label} label={label} score={data.scores[i] ?? 0} />
-        ))}
-      </div>
-
-      {/* Feedback */}
-      {data.comment && (
-        <div className="rounded-lg border bg-card p-5 space-y-5">
-          <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">スピーキングを改善しましょう</p>
-
-          {sections ? (
-            <>
-              {/* Good point */}
-              <div className="flex items-start gap-2.5">
-                <CheckCircle2 className="h-4 w-4 shrink-0 mt-0.5 text-[color:var(--color-success)]" />
-                <p className="text-sm leading-relaxed text-foreground">{sections.good}</p>
+        {/* Right column */}
+        <div className="space-y-5">
+          {/* User speech */}
+          {data.speech_text && (
+            <div className="rounded-lg border bg-card p-5 space-y-3">
+              <div className="flex items-center gap-1.5">
+                <MessageSquare className="h-3.5 w-3.5 text-muted-foreground" />
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">あなたのスピーチ</p>
               </div>
+              <p className="text-sm leading-relaxed text-foreground">{data.speech_text}</p>
+            </div>
+          )}
 
-              {/* Before / After cards */}
-              {(sections.grammarBefore || sections.grammarAfter) && (
-                <BeforeAfterCard
-                  before={sections.grammarBefore}
-                  after={sections.grammarAfter}
-                  type="grammar"
-                />
-              )}
-              {(sections.phraseBefore || sections.phraseAfter) && (
-                <BeforeAfterCard
-                  before={sections.phraseBefore}
-                  after={sections.phraseAfter}
-                  type="phrase"
-                />
-              )}
+          {/* Feedback */}
+          {data.comment && (
+            <div className="rounded-lg border bg-card p-5 space-y-5">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">フィードバック</p>
 
-              {/* Example sentences */}
-              {(sections.example1 || sections.example2) && (
-                <div className="space-y-2">
-                  <div className="flex items-center gap-1.5">
-                    <BookOpen className="h-3.5 w-3.5 text-muted-foreground" />
-                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">こう言うと自然</p>
+              {sections ? (
+                <>
+                  {/* Good point */}
+                  <div className="flex items-start gap-2.5">
+                    <CheckCircle2 className="h-4 w-4 shrink-0 mt-0.5 text-[color:var(--color-success)]" />
+                    <p className="text-sm leading-relaxed text-foreground">{sections.good}</p>
                   </div>
-                  <div className="space-y-2">
-                    {[sections.example1, sections.example2].filter(Boolean).map((ex, i) => (
-                      <div key={i} className="flex items-start gap-2 rounded-lg bg-muted/30 px-3 py-2.5">
-                        <span className="text-xs font-bold text-muted-foreground/50 mt-0.5 shrink-0">{i + 1}</span>
-                        <p className="text-sm leading-relaxed flex-1">{ex}</p>
-                        <SpeakButton text={ex!} />
+
+                  {/* Improve point */}
+                  {sections.improve && sections.improve !== "-" && (
+                    <div className="flex items-start gap-2.5">
+                      <TrendingUp className="h-4 w-4 shrink-0 mt-0.5 text-[color:var(--color-warning)]" />
+                      <p className="text-sm leading-relaxed text-foreground">{sections.improve}</p>
+                    </div>
+                  )}
+
+                  {/* Before / After cards */}
+                  {hasBeforeAfter && (
+                    <div className="space-y-4 pt-1">
+                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">添削</p>
+                      <BeforeAfterCard
+                        before={sections.grammarBefore}
+                        after={sections.grammarAfter}
+                        type="grammar"
+                      />
+                      <BeforeAfterCard
+                        before={sections.phraseBefore}
+                        after={sections.phraseAfter}
+                        type="phrase"
+                      />
+                    </div>
+                  )}
+
+                  {/* Example sentences */}
+                  {(sections.example1 || sections.example2) && (
+                    <div className="space-y-2 pt-1">
+                      <div className="flex items-center gap-1.5">
+                        <BookOpen className="h-3.5 w-3.5 text-muted-foreground" />
+                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">こう言うと自然</p>
                       </div>
-                    ))}
-                  </div>
-                </div>
+                      <div className="space-y-2">
+                        {[sections.example1, sections.example2].filter(Boolean).map((ex, i) => (
+                          <div key={i} className="flex items-start gap-2 rounded-lg bg-muted/30 px-3 py-2.5">
+                            <span className="text-xs font-bold text-muted-foreground/50 mt-0.5 shrink-0">{i + 1}</span>
+                            <p className="text-sm leading-relaxed flex-1">{ex}</p>
+                            <SpeakButton text={ex!} />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <p className="text-sm text-foreground leading-relaxed">{data.comment}</p>
               )}
-            </>
-          ) : (
-            <p className="text-sm text-foreground leading-relaxed">{data.comment}</p>
+            </div>
           )}
         </div>
-      )}
+      </div>
 
       {/* Actions */}
       <div className="flex gap-3">

@@ -9,7 +9,7 @@ import type { PastLog } from "./page"
 const DURATION = 30
 const TOTAL_REQUIRED = 3
 
-type State = "idle" | "recording" | "evaluating" | "error"
+type State = "idle" | "recording" | "transcribing" | "evaluating" | "error"
 
 function CountdownRing({ remaining, total }: { remaining: number; total: number }) {
   const r = 44
@@ -34,7 +34,6 @@ function CountdownRing({ remaining, total }: { remaining: number; total: number 
 }
 
 function parseGoodPoint(raw: string) {
-  // Support both new format [GOOD] and old format [GOOD]/[UPGRADE]/[GRAMMAR]
   const m = raw.match(/\[GOOD\]([\s\S]*?)(?=\[|$)/)
   return m ? m[1].trim() : null
 }
@@ -82,102 +81,98 @@ export function PracticeClient({
   const router = useRouter()
   const [state, setState] = useState<State>("idle")
   const [remaining, setRemaining] = useState(DURATION)
-  const [finalText, setFinalText] = useState("")
-  const [interimText, setInterimText] = useState("")
   const [errorDetail, setErrorDetail] = useState("")
-  const [supported, setSupported] = useState(true)
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const recognitionRef = useRef<any>(null)
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null)
+  const chunksRef = useRef<Blob[]>([])
+  const streamRef = useRef<MediaStream | null>(null)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
-  const transcriptRef = useRef("")
   const stoppedRef = useRef(false)
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const w = window as any
-      const SR = w.SpeechRecognition || w.webkitSpeechRecognition
-      if (!SR) setSupported(false)
-    }
     return () => {
       timerRef.current && clearInterval(timerRef.current)
-      recognitionRef.current?.abort()
+      mediaRecorderRef.current?.stop()
+      streamRef.current?.getTracks().forEach((t) => t.stop())
     }
   }, [])
 
-  const evaluate = useCallback(async (text: string) => {
-    if (stoppedRef.current) return
-    stoppedRef.current = true
+  const transcribeAndEvaluate = useCallback(async (blob: Blob) => {
+    setState("transcribing")
+
+    let speechText = ""
+    try {
+      const formData = new FormData()
+      formData.append("audio", blob, "recording.webm")
+      const res = await fetch("/api/transcribe", { method: "POST", body: formData })
+      if (res.ok) {
+        const data = await res.json()
+        speechText = data.text ?? ""
+      }
+    } catch {
+      // 転写失敗時は空文字で評価へ進む
+    }
 
     setState("evaluating")
-    timerRef.current && clearInterval(timerRef.current)
-    recognitionRef.current?.abort()
-
     try {
       const res = await fetch("/api/speaking-eval", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ grammarId, grammarName, speechText: text }),
+        body: JSON.stringify({ grammarId, grammarName, speechText }),
       })
       const data = await res.json()
       if (data.logId) {
         router.push(`/speaking/${grammarId}/result?log=${data.logId}`)
       } else {
-        const msg = data.error ?? `HTTP ${res.status}`
-        console.error("speaking-eval error:", msg)
-        setErrorDetail(msg)
+        setErrorDetail(data.error ?? `HTTP ${res.status}`)
         setState("error")
       }
     } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err)
-      console.error("speaking-eval fetch error:", msg)
-      setErrorDetail(msg)
+      setErrorDetail(err instanceof Error ? err.message : String(err))
       setState("error")
     }
   }, [grammarId, grammarName, router])
 
-  function startRecording() {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const w = window as any
-    const SR = w.SpeechRecognition || w.webkitSpeechRecognition
-    if (!SR) return
+  function stopRecording() {
+    if (stoppedRef.current) return
+    stoppedRef.current = true
+    timerRef.current && clearInterval(timerRef.current)
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+      mediaRecorderRef.current.stop()
+    }
+  }
 
-    stoppedRef.current = false
-    transcriptRef.current = ""
-    setFinalText("")
-    setInterimText("")
+  async function startRecording() {
     setErrorDetail("")
     setRemaining(DURATION)
+    stoppedRef.current = false
+    chunksRef.current = []
+
+    let stream: MediaStream
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+    } catch {
+      setErrorDetail("マイクへのアクセスが許可されていません。ブラウザの設定を確認してください。")
+      setState("error")
+      return
+    }
+
+    streamRef.current = stream
+    const recorder = new MediaRecorder(stream)
+    mediaRecorderRef.current = recorder
+
+    recorder.ondataavailable = (e) => {
+      if (e.data.size > 0) chunksRef.current.push(e.data)
+    }
+
+    recorder.onstop = () => {
+      stream.getTracks().forEach((t) => t.stop())
+      const blob = new Blob(chunksRef.current, { type: "audio/webm" })
+      transcribeAndEvaluate(blob)
+    }
+
+    recorder.start()
     setState("recording")
-
-    const recognition = new SR()
-    recognition.lang = "en-US"
-    recognition.continuous = true
-    recognition.interimResults = true
-    recognitionRef.current = recognition
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    recognition.onresult = (event: any) => {
-      let final = ""
-      let interim = ""
-      for (let i = 0; i < event.results.length; i++) {
-        if (event.results[i].isFinal) {
-          final += event.results[i][0].transcript + " "
-        } else {
-          interim += event.results[i][0].transcript
-        }
-      }
-      transcriptRef.current = final
-      setFinalText(final)
-      setInterimText(interim)
-    }
-
-    recognition.onerror = () => {
-      if (!stoppedRef.current) evaluate(transcriptRef.current)
-    }
-
-    recognition.start()
 
     let count = DURATION
     timerRef.current = setInterval(() => {
@@ -185,37 +180,17 @@ export function PracticeClient({
       setRemaining(count)
       if (count <= 0) {
         clearInterval(timerRef.current!)
-        evaluate(transcriptRef.current)
+        stopRecording()
       }
     }, 1000)
-  }
-
-  function stopEarly() {
-    if (stoppedRef.current) return
-    timerRef.current && clearInterval(timerRef.current)
-    evaluate(transcriptRef.current)
   }
 
   function retry() {
     stoppedRef.current = false
     setState("idle")
     setRemaining(DURATION)
-    setFinalText("")
-    setInterimText("")
     setErrorDetail("")
-    transcriptRef.current = ""
-  }
-
-  if (!supported) {
-    return (
-      <div className="max-w-lg mx-auto space-y-4 text-center pt-16">
-        <p className="text-muted-foreground">
-          このブラウザは音声認識に対応していません。
-          <br />Chrome または Edge をお使いください。
-        </p>
-        <Button variant="outline" onClick={() => router.push("/speaking")}>一覧に戻る</Button>
-      </div>
-    )
+    chunksRef.current = []
   }
 
   return (
@@ -237,7 +212,7 @@ export function PracticeClient({
         {/* Grammar summary */}
         <p className="text-sm text-muted-foreground leading-relaxed">{grammarSummary}</p>
 
-        {/* Past feedback (shown on 2nd / 3rd session) */}
+        {/* Past feedback */}
         {pastLogs.length > 0 && state === "idle" && (
           <div className="space-y-2">
             {pastLogs.map((log, i) => (
@@ -246,7 +221,7 @@ export function PracticeClient({
           </div>
         )}
 
-        {/* Controls */}
+        {/* idle */}
         {state === "idle" && (
           <div className="flex flex-col items-center gap-3">
             <Button size="lg" onClick={startRecording} className="gap-2 px-8">
@@ -258,6 +233,7 @@ export function PracticeClient({
           </div>
         )}
 
+        {/* recording */}
         {state === "recording" && (
           <div className="flex flex-col items-center gap-3">
             <CountdownRing remaining={remaining} total={DURATION} />
@@ -265,17 +241,7 @@ export function PracticeClient({
               <span className="inline-block w-2.5 h-2.5 rounded-full bg-destructive animate-pulse" />
               <span className="text-sm font-medium text-destructive">録音中</span>
             </div>
-            <div className="w-full rounded-lg border bg-muted/20 px-4 py-3 min-h-[56px]">
-              {finalText || interimText ? (
-                <p className="text-sm leading-relaxed">
-                  <span className="text-foreground">{finalText}</span>
-                  <span className="text-muted-foreground italic">{interimText}</span>
-                </p>
-              ) : (
-                <p className="text-sm text-muted-foreground/60 italic">話してください...</p>
-              )}
-            </div>
-            <Button variant="outline" size="lg" onClick={stopEarly} className="gap-2 px-8">
+            <Button variant="outline" size="lg" onClick={stopRecording} className="gap-2 px-8">
               停止して評価
             </Button>
             <Button
@@ -284,7 +250,8 @@ export function PracticeClient({
               onClick={() => {
                 stoppedRef.current = true
                 timerRef.current && clearInterval(timerRef.current)
-                recognitionRef.current?.abort()
+                mediaRecorderRef.current?.stop()
+                streamRef.current?.getTracks().forEach((t) => t.stop())
                 router.push("/speaking")
               }}
             >
@@ -293,6 +260,15 @@ export function PracticeClient({
           </div>
         )}
 
+        {/* transcribing */}
+        {state === "transcribing" && (
+          <div className="flex flex-col items-center gap-3 pt-4">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p className="text-sm text-muted-foreground">音声を解析中...</p>
+          </div>
+        )}
+
+        {/* evaluating */}
         {state === "evaluating" && (
           <div className="flex flex-col items-center gap-3 pt-4">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -300,9 +276,10 @@ export function PracticeClient({
           </div>
         )}
 
+        {/* error */}
         {state === "error" && (
           <div className="flex flex-col items-center gap-3 pt-2">
-            <p className="text-sm text-destructive text-center">評価中にエラーが発生しました。</p>
+            <p className="text-sm text-destructive text-center">エラーが発生しました。</p>
             {errorDetail && (
               <p className="text-xs text-muted-foreground text-center break-all max-w-xs">{errorDetail}</p>
             )}

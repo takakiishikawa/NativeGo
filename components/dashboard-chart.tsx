@@ -5,7 +5,9 @@ import {
   Card, CardContent, CardHeader, CardTitle,
   type ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent,
 } from "@takaki/go-design-system"
-import { AreaChart, Area, XAxis, CartesianGrid, ReferenceLine } from "recharts"
+import { ComposedChart, Area, Line, XAxis, YAxis, CartesianGrid } from "recharts"
+
+const TARGET_KEY = "_target"
 
 interface DashboardChartProps {
   title: string
@@ -15,17 +17,26 @@ interface DashboardChartProps {
   yKeys: string[]
   unit?: string
   baseline?: number
+  yDomain?: [number | string, number | string]
   emptyText?: string
 }
 
 export function DashboardChart({
-  title, data, config, xKey, yKeys, unit = "", baseline, emptyText,
+  title, data, config, xKey, yKeys, unit = "", baseline, yDomain, emptyText,
 }: DashboardChartProps) {
   const uid = useId().replace(/:/g, "")
   const hasData = data.some((d) => yKeys.some((k) => (d[k] as number) > 0))
 
+  const augmentedData = baseline != null
+    ? data.map((d) => ({ ...d, [TARGET_KEY]: baseline }))
+    : data
+
+  const augmentedConfig: ChartConfig = baseline != null
+    ? { ...config, [TARGET_KEY]: { label: "1日目標", color: "var(--color-muted-foreground)" } }
+    : config
+
   return (
-    <Card className="shadow-none border border-[var(--color-border-subtle)]">
+    <Card className="shadow-sm border border-[var(--color-border-default)]">
       <CardHeader className="pb-1 pt-4 px-5">
         <CardTitle className="text-[13px] font-medium text-muted-foreground uppercase tracking-[0.05em]">
           {title}
@@ -50,8 +61,8 @@ export function DashboardChart({
             {emptyText ?? "データが溜まるとグラフが表示されます"}
           </div>
         ) : (
-          <ChartContainer config={config} className="h-[160px] w-full">
-            <AreaChart data={data} margin={{ top: 4, right: 4, left: -28, bottom: 0 }}>
+          <ChartContainer config={augmentedConfig} className="h-[160px] w-full">
+            <ComposedChart data={augmentedData} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
               <defs>
                 {yKeys.map((key) => {
                   const color = (config[key]?.color as string | undefined) ?? "var(--color-primary)"
@@ -71,18 +82,19 @@ export function DashboardChart({
                 tickLine={false}
                 interval="preserveStartEnd"
               />
+              <YAxis
+                tick={{ fontSize: 10 }}
+                axisLine={false}
+                tickLine={false}
+                width={30}
+                domain={yDomain ?? [0, "auto"]}
+                tickCount={4}
+                allowDecimals={false}
+              />
               <ChartTooltip
                 cursor={false}
                 content={<ChartTooltipContent indicator="dot" />}
               />
-              {baseline != null && (
-                <ReferenceLine
-                  y={baseline}
-                  strokeDasharray="3 3"
-                  strokeWidth={1}
-                  className="stroke-muted-foreground/40"
-                />
-              )}
               {yKeys.map((key) => {
                 const color = (config[key]?.color as string | undefined) ?? "var(--color-primary)"
                 return (
@@ -99,7 +111,20 @@ export function DashboardChart({
                   />
                 )
               })}
-            </AreaChart>
+              {baseline != null && (
+                <Line
+                  type="monotone"
+                  dataKey={TARGET_KEY}
+                  stroke="var(--color-muted-foreground)"
+                  strokeOpacity={0.5}
+                  strokeWidth={1}
+                  strokeDasharray="4 3"
+                  dot={false}
+                  activeDot={false}
+                  isAnimationActive={false}
+                />
+              )}
+            </ComposedChart>
           </ChartContainer>
         )}
       </CardContent>
