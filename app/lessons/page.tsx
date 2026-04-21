@@ -122,9 +122,9 @@ export default function LessonsPage() {
 
       <Tabs defaultValue="1">
         <TabsList>
-          <TabsTrigger value="1">Level 1</TabsTrigger>
-          <TabsTrigger value="2">Level 2</TabsTrigger>
-          <TabsTrigger value="3">Level 3</TabsTrigger>
+          <TabsTrigger value="1">Level 1 <Badge variant="secondary" className="ml-2 rounded-full">{byLevel(1).length}</Badge></TabsTrigger>
+          <TabsTrigger value="2">Level 2 <Badge variant="secondary" className="ml-2 rounded-full">{byLevel(2).length}</Badge></TabsTrigger>
+          <TabsTrigger value="3">Level 3 <Badge variant="secondary" className="ml-2 rounded-full">{byLevel(3).length}</Badge></TabsTrigger>
         </TabsList>
 
         {[1, 2, 3].map((lvl) => (

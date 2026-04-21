@@ -122,6 +122,8 @@ export function DashboardChart({
                     dataKey={key}
                     stroke={color}
                     strokeWidth={1.5}
+                    strokeOpacity={0.45}
+                    strokeDasharray="4 3"
                     dot={false}
                     activeDot={{ r: 3, strokeWidth: 0 }}
                     isAnimationActive={false}

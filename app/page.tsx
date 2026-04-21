@@ -76,7 +76,7 @@ function weeklyProgress(value: number, baseline: number | undefined): number | u
 const repeatingConfig: ChartConfig = {
   grammar:    { label: "文法",     color: "var(--color-primary)" },
   expression: { label: "フレーズ", color: "var(--color-primary-chart-2)" },
-  total:      { label: "合計",     color: "var(--color-foreground)" },
+  total:      { label: "合計",     color: "var(--color-primary)" },
 }
 const speakingConfig: ChartConfig = {
   count: { label: "練習回数", color: "var(--color-primary)" },

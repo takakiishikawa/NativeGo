@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo } from "react"
 import { createClient } from "@/lib/supabase/client"
 import {
-  DataTable, PageHeader,
+  DataTable, PageHeader, Badge,
   Dialog, DialogContent, DialogHeader, DialogTitle,
   Tabs, TabsContent, TabsList, TabsTrigger,
 } from "@takaki/go-design-system"
@@ -226,7 +226,7 @@ function PhraseModal({ item, onClose }: { item: ExpressionWithLesson; onClose: (
 
 // ── GrammarTab ────────────────────────────────────────────────────────────────
 
-function GrammarTab() {
+function GrammarTab({ onCountChange }: { onCountChange?: (n: number) => void }) {
   const supabase = createClient()
   const [items, setItems] = useState<GrammarWithLesson[]>([])
   const [loading, setLoading] = useState(true)
@@ -235,7 +235,9 @@ function GrammarTab() {
   useEffect(() => {
     async function load() {
       const { data } = await supabase.from("grammar").select("*, lessons(lesson_no)")
-      setItems(sortByLessonNo((data ?? []) as GrammarWithLesson[]))
+      const sorted = sortByLessonNo((data ?? []) as GrammarWithLesson[])
+      setItems(sorted)
+      onCountChange?.(sorted.length)
       setLoading(false)
     }
     load()
@@ -301,7 +303,7 @@ function GrammarTab() {
 
 // ── PhraseTab ─────────────────────────────────────────────────────────────────
 
-function PhraseTab() {
+function PhraseTab({ onCountChange }: { onCountChange?: (n: number) => void }) {
   const supabase = createClient()
   const [items, setItems] = useState<ExpressionWithLesson[]>([])
   const [loading, setLoading] = useState(true)
@@ -310,7 +312,9 @@ function PhraseTab() {
   useEffect(() => {
     async function load() {
       const { data } = await supabase.from("expressions").select("*, lessons(lesson_no)")
-      setItems(sortByLessonNo((data ?? []) as ExpressionWithLesson[]))
+      const sorted = sortByLessonNo((data ?? []) as ExpressionWithLesson[])
+      setItems(sorted)
+      onCountChange?.(sorted.length)
       setLoading(false)
     }
     load()
@@ -382,20 +386,29 @@ function PhraseTab() {
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function ListPage() {
+  const [grammarCount, setGrammarCount] = useState<number | null>(null)
+  const [phraseCount, setPhraseCount] = useState<number | null>(null)
+
   return (
     <div className="space-y-6">
       <PageHeader title="文法・フレーズ" description="登録済みの文法・フレーズを確認できます" />
 
       <Tabs defaultValue="grammar">
         <TabsList>
-          <TabsTrigger value="grammar">文法</TabsTrigger>
-          <TabsTrigger value="phrase">フレーズ</TabsTrigger>
+          <TabsTrigger value="grammar">
+            文法
+            {grammarCount !== null && <Badge variant="secondary" className="ml-2 rounded-full">{grammarCount}</Badge>}
+          </TabsTrigger>
+          <TabsTrigger value="phrase">
+            フレーズ
+            {phraseCount !== null && <Badge variant="secondary" className="ml-2 rounded-full">{phraseCount}</Badge>}
+          </TabsTrigger>
         </TabsList>
         <TabsContent value="grammar" className="mt-4">
-          <GrammarTab />
+          <GrammarTab onCountChange={setGrammarCount} />
         </TabsContent>
         <TabsContent value="phrase" className="mt-4">
-          <PhraseTab />
+          <PhraseTab onCountChange={setPhraseCount} />
         </TabsContent>
       </Tabs>
     </div>

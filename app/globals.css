@@ -48,6 +48,12 @@
     filter: brightness(0.88);
     transform: translateY(0.5px);
   }
+
+  /* カード・リンクの押下フィードバック */
+  a[href]:active {
+    filter: brightness(0.92);
+    transform: translateY(0.5px);
+  }
 }
 
 /* フォント設定 + サイドバートークンをTailwindテーマに登録 */

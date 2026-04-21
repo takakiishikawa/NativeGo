@@ -4,6 +4,13 @@ import { NextRequest, NextResponse } from "next/server"
 
 export const maxDuration = 300
 
+export async function GET() {
+  return NextResponse.json(
+    { error: "POST only. Use the speaking page button to generate images." },
+    { status: 405 }
+  )
+}
+
 export async function POST(request: NextRequest) {
   console.log("[generate-images] リクエスト受信")
 

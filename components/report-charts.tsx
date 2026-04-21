@@ -155,7 +155,7 @@ export function ReportCharts({ logs, ncLogs, youtubeLogs }: { logs: PracticeLog[
           config={ncConfig}
           xKey="label"
           yKeys={["minutes"]}
-          title="Native Camp 学習時間"
+          title="Native Camp"
           timeRanges={noRanges}
           filterByDate={false}
           xTickFormatter={xFmt}
@@ -165,7 +165,7 @@ export function ReportCharts({ logs, ncLogs, youtubeLogs }: { logs: PracticeLog[
           config={shadowingConfig}
           xKey="label"
           yKeys={["minutes"]}
-          title="シャドーイング 視聴時間"
+          title="シャドーイング"
           timeRanges={noRanges}
           filterByDate={false}
           xTickFormatter={xFmt}
