@@ -209,7 +209,6 @@ export default function ShadowingPage() {
               >
                 <Archive className="h-4 w-4 mr-1.5" />
                 アーカイブ済み
-                <Badge variant="outline" className="ml-1.5">{archivedChannels.length}</Badge>
               </Button>
             )}
             <Button onClick={() => setShowAddModal(true)} size="sm">
@@ -294,11 +293,11 @@ export default function ShadowingPage() {
                 <TabsList>
                   <TabsTrigger value="todo">
                     これから
-                    <Badge variant="secondary" className="ml-2">{todoCnt}</Badge>
+                    <Badge variant="secondary" className="ml-2 rounded-full">{todoCnt}</Badge>
                   </TabsTrigger>
                   <TabsTrigger value="done">
                     見た
-                    <Badge variant="secondary" className="ml-2">{doneCnt}</Badge>
+                    <Badge variant="secondary" className="ml-2 rounded-full">{doneCnt}</Badge>
                   </TabsTrigger>
                 </TabsList>
               </Tabs>

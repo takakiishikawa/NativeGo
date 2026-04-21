@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo } from "react"
 import { createClient } from "@/lib/supabase/client"
 import {
-  Badge, DataTable, PageHeader,
+  DataTable, PageHeader,
   Dialog, DialogContent, DialogHeader, DialogTitle,
   Tabs, TabsContent, TabsList, TabsTrigger,
 } from "@takaki/go-design-system"
@@ -20,7 +20,7 @@ function StarRating({ value }: { value: number }) {
       {[1, 2, 3, 4, 5].map((i) => (
         <Star
           key={i}
-          className={`h-4 w-4 ${i <= value ? "fill-[var(--color-warning)] text-[color:var(--color-warning)]" : "text-muted-foreground"}`}
+          className={`h-3.5 w-3.5 ${i <= value ? "fill-[var(--color-warning)] text-[color:var(--color-warning)]" : "text-muted-foreground/30"}`}
         />
       ))}
     </span>
@@ -41,6 +41,191 @@ function sortByLessonNo<T extends { lessons: { lesson_no: string } | null }>(ite
   })
 }
 
+function StatsBar({ total, done, inProgress }: { total: number; done: number; inProgress: number }) {
+  const pct = total > 0 ? Math.round((done / total) * 100) : 0
+  return (
+    <div className="flex items-center gap-4 flex-wrap">
+      <div className="flex items-center gap-2">
+        <div className="h-1.5 w-28 bg-muted rounded-full overflow-hidden">
+          <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${pct}%` }} />
+        </div>
+        <span className="text-sm font-medium">{total}件</span>
+      </div>
+      <div className="flex items-center gap-4 text-sm text-muted-foreground">
+        {done > 0 && (
+          <span className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full" style={{ background: "var(--color-success)" }} />
+            完了 {done}
+          </span>
+        )}
+        {inProgress > 0 && (
+          <span className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full" style={{ background: "var(--color-warning)" }} />
+            練習中 {inProgress}
+          </span>
+        )}
+        {total - done - inProgress > 0 && (
+          <span className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-muted-foreground/30" />
+            未練習 {total - done - inProgress}
+          </span>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function PlayProgress({ count, max = 10 }: { count: number; max?: number }) {
+  const pct = Math.min((count / max) * 100, 100)
+  return (
+    <div className="flex items-center gap-2 min-w-[80px]">
+      <div className="h-1 w-12 bg-muted rounded-full overflow-hidden">
+        <div className="h-full bg-primary rounded-full" style={{ width: `${pct}%` }} />
+      </div>
+      <span className="text-xs text-foreground tabular-nums">{count}/{max}</span>
+    </div>
+  )
+}
+
+// ── Grammar Modal ─────────────────────────────────────────────────────────────
+
+function GrammarModal({ item, onClose }: { item: GrammarWithLesson; onClose: () => void }) {
+  const exampleLines = item.examples?.split("\n").filter(Boolean) ?? []
+
+  return (
+    <Dialog open onOpenChange={(open) => { if (!open) onClose() }}>
+      <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>{item.name}</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-5 text-sm">
+
+          {/* Summary */}
+          <div className="rounded-lg bg-muted/60 px-4 py-3 leading-relaxed whitespace-pre-line text-foreground">
+            {item.summary?.replace(/\\n/g, "\n")}
+          </div>
+
+          {/* Detail */}
+          {item.detail && (
+            <div className="space-y-2">
+              <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest">詳細</p>
+              <p className="leading-7 whitespace-pre-wrap text-foreground">{item.detail}</p>
+            </div>
+          )}
+
+          {/* Examples */}
+          {exampleLines.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest">例文</p>
+              <div className="space-y-2">
+                {exampleLines.map((line, i) => {
+                  const isA = line.startsWith("A:")
+                  const isB = line.startsWith("B:")
+                  if (isA || isB) {
+                    const speaker = isA ? "A" : "B"
+                    const text = line.slice(2).trim()
+                    return (
+                      <div key={i} className={`flex items-start gap-2.5 ${isB ? "pl-6" : ""}`}>
+                        <span className={`shrink-0 mt-0.5 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                          isA
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-muted-foreground/20 text-foreground"
+                        }`}>
+                          {speaker}
+                        </span>
+                        <div className={`rounded-lg px-3 py-2 leading-relaxed ${
+                          isA ? "bg-primary/10 text-foreground" : "bg-muted text-foreground"
+                        }`}>
+                          {text}
+                        </div>
+                      </div>
+                    )
+                  }
+                  return <p key={i} className="text-foreground pl-1">{line}</p>
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Footer */}
+          <div className="flex items-center gap-4 pt-3 border-t text-xs text-muted-foreground">
+            <StarRating value={item.frequency} />
+            <span>練習 {item.play_count} / 10回</span>
+            {item.lessons?.lesson_no && <span>テキスト {item.lessons.lesson_no}</span>}
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+// ── Phrase Modal ──────────────────────────────────────────────────────────────
+
+function PhraseModal({ item, onClose }: { item: ExpressionWithLesson; onClose: () => void }) {
+  const convLines = item.conversation?.split("\n").filter(Boolean) ?? []
+
+  return (
+    <Dialog open onOpenChange={(open) => { if (!open) onClose() }}>
+      <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>{item.expression}</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-5 text-sm">
+
+          {/* Meaning */}
+          <div className="rounded-lg bg-muted/60 px-4 py-3 leading-relaxed whitespace-pre-line text-foreground">
+            {item.meaning}
+          </div>
+
+          {/* Conversation */}
+          {convLines.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest">会話例</p>
+              <div className="space-y-2">
+                {convLines.map((line, i) => {
+                  const isA = line.startsWith("A:")
+                  const isB = line.startsWith("B:")
+                  if (isA || isB) {
+                    const speaker = isA ? "A" : "B"
+                    const text = line.slice(2).trim()
+                    return (
+                      <div key={i} className={`flex items-start gap-2.5 ${isB ? "pl-6" : ""}`}>
+                        <span className={`shrink-0 mt-0.5 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                          isA
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-muted-foreground/20 text-foreground"
+                        }`}>
+                          {speaker}
+                        </span>
+                        <div className={`rounded-lg px-3 py-2 leading-relaxed ${
+                          isA ? "bg-primary/10 text-foreground" : "bg-muted text-foreground"
+                        }`}>
+                          {text}
+                        </div>
+                      </div>
+                    )
+                  }
+                  return <p key={i} className="text-foreground pl-1">{line}</p>
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Footer */}
+          <div className="flex items-center gap-4 pt-3 border-t text-xs text-muted-foreground">
+            <StarRating value={item.frequency} />
+            <span>練習 {item.play_count} / 10回</span>
+            {item.category && <span>{item.category}</span>}
+            {item.lessons?.lesson_no && <span>テキスト {item.lessons.lesson_no}</span>}
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+// ── GrammarTab ────────────────────────────────────────────────────────────────
+
 function GrammarTab() {
   const supabase = createClient()
   const [items, setItems] = useState<GrammarWithLesson[]>([])
@@ -49,41 +234,37 @@ function GrammarTab() {
 
   useEffect(() => {
     async function load() {
-      const { data } = await supabase
-        .from("grammar")
-        .select("*, lessons(lesson_no)")
+      const { data } = await supabase.from("grammar").select("*, lessons(lesson_no)")
       setItems(sortByLessonNo((data ?? []) as GrammarWithLesson[]))
       setLoading(false)
     }
     load()
   }, [])
 
+  const doneCount = items.filter((i) => i.play_count >= 10).length
+  const inProgressCount = items.filter((i) => i.play_count > 0 && i.play_count < 10).length
+
   const columns = useMemo((): ColumnDef<GrammarWithLesson>[] => [
     {
       id: "lesson_no",
-      header: "テキストID",
+      header: "テキスト",
       cell: ({ row }) => (
-        <span className="font-mono text-xs text-muted-foreground">{row.original.lessons?.lesson_no ?? "—"}</span>
+        <span className="font-mono text-xs text-foreground">{row.original.lessons?.lesson_no ?? "—"}</span>
       ),
     },
     {
       accessorKey: "name",
       header: "文法名",
       cell: ({ row }) => (
-        <button
-          onClick={() => setSelected(row.original)}
-          className="font-medium text-left hover:underline text-foreground"
-        >
-          {row.original.name}
-        </button>
+        <span className="font-medium text-foreground">{row.original.name}</span>
       ),
     },
     {
       accessorKey: "summary",
       header: "概要",
       cell: ({ row }) => (
-        <span className="text-muted-foreground text-sm line-clamp-1 max-w-xs block">
-          {row.original.summary.split("\n")[0]}
+        <span className="text-sm text-foreground line-clamp-1 max-w-xs block">
+          {row.original.summary?.replace(/\\n/g, " ").split("\n")[0]}
         </span>
       ),
     },
@@ -94,8 +275,8 @@ function GrammarTab() {
     },
     {
       accessorKey: "play_count",
-      header: "回数",
-      cell: ({ row }) => <span className="text-sm text-muted-foreground">{row.original.play_count} / 10</span>,
+      header: "練習",
+      cell: ({ row }) => <PlayProgress count={row.original.play_count} />,
     },
   ], [])
 
@@ -105,53 +286,20 @@ function GrammarTab() {
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center gap-3">
-        <span className="text-sm text-muted-foreground">全 {items.length} 件</span>
-        <span className="inline-flex items-center gap-1 text-sm font-medium px-2 py-0.5 rounded-full bg-[color:var(--color-success-subtle)] text-[color:var(--color-success)]">
-          完了 {items.filter((i) => i.play_count >= 10).length}
-        </span>
-      </div>
-
+      <StatsBar total={items.length} done={doneCount} inProgress={inProgressCount} />
       <DataTable
         columns={columns}
         data={items}
-        searchable={{ columnId: "name", placeholder: "文法名で検索..." }}
         pageSize={20}
         emptyMessage="文法が登録されていません"
+        onRowClick={setSelected}
       />
-
-      {selected && (
-        <Dialog open={!!selected} onOpenChange={(open) => { if (!open) setSelected(null) }}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>{selected.name}</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-1">簡易解説</p>
-                <p className="text-sm">{selected.summary}</p>
-              </div>
-              {selected.detail && (
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-1">詳細解説</p>
-                  <p className="text-sm leading-relaxed whitespace-pre-wrap">{selected.detail}</p>
-                </div>
-              )}
-              <div>
-                <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-2">例文</p>
-                <ul className="space-y-2">
-                  {selected.examples.split("\n").filter(Boolean).map((ex, i) => (
-                    <li key={i} className="rounded-lg bg-muted px-3 py-2 text-sm">{ex}</li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
+      {selected && <GrammarModal item={selected} onClose={() => setSelected(null)} />}
     </div>
   )
 }
+
+// ── PhraseTab ─────────────────────────────────────────────────────────────────
 
 function PhraseTab() {
   const supabase = createClient()
@@ -161,45 +309,43 @@ function PhraseTab() {
 
   useEffect(() => {
     async function load() {
-      const { data } = await supabase
-        .from("expressions")
-        .select("*, lessons(lesson_no)")
+      const { data } = await supabase.from("expressions").select("*, lessons(lesson_no)")
       setItems(sortByLessonNo((data ?? []) as ExpressionWithLesson[]))
       setLoading(false)
     }
     load()
   }, [])
 
+  const doneCount = items.filter((i) => i.play_count >= 10).length
+  const inProgressCount = items.filter((i) => i.play_count > 0 && i.play_count < 10).length
+
   const columns = useMemo((): ColumnDef<ExpressionWithLesson>[] => [
     {
       id: "lesson_no",
-      header: "テキストID",
+      header: "テキスト",
       cell: ({ row }) => (
-        <span className="font-mono text-xs text-muted-foreground">{row.original.lessons?.lesson_no ?? "—"}</span>
+        <span className="font-mono text-xs text-foreground">{row.original.lessons?.lesson_no ?? "—"}</span>
       ),
     },
     {
       accessorKey: "category",
       header: "種別",
-      cell: ({ row }) => <Badge variant="outline" className="text-xs">{row.original.category}</Badge>,
+      cell: ({ row }) => (
+        <span className="text-xs text-foreground">{row.original.category}</span>
+      ),
     },
     {
       accessorKey: "expression",
       header: "フレーズ",
       cell: ({ row }) => (
-        <button
-          onClick={() => setSelected(row.original)}
-          className="font-medium text-left hover:underline text-foreground"
-        >
-          {row.original.expression}
-        </button>
+        <span className="font-medium text-foreground">{row.original.expression}</span>
       ),
     },
     {
       accessorKey: "meaning",
       header: "意味",
       cell: ({ row }) => (
-        <span className="text-muted-foreground text-sm line-clamp-1 max-w-xs block">{row.original.meaning}</span>
+        <span className="text-sm text-foreground line-clamp-1 max-w-xs block">{row.original.meaning}</span>
       ),
     },
     {
@@ -209,8 +355,8 @@ function PhraseTab() {
     },
     {
       accessorKey: "play_count",
-      header: "回数",
-      cell: ({ row }) => <span className="text-sm text-muted-foreground">{row.original.play_count} / 10</span>,
+      header: "練習",
+      cell: ({ row }) => <PlayProgress count={row.original.play_count} />,
     },
   ], [])
 
@@ -220,65 +366,20 @@ function PhraseTab() {
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center gap-3">
-        <span className="text-sm text-muted-foreground">全 {items.length} 件</span>
-        <span className="inline-flex items-center gap-1 text-sm font-medium px-2 py-0.5 rounded-full bg-[color:var(--color-success-subtle)] text-[color:var(--color-success)]">
-          完了 {items.filter((i) => i.play_count >= 10).length}
-        </span>
-      </div>
-
+      <StatsBar total={items.length} done={doneCount} inProgress={inProgressCount} />
       <DataTable
         columns={columns}
         data={items}
-        searchable={{ columnId: "expression", placeholder: "フレーズで検索..." }}
         pageSize={20}
         emptyMessage="フレーズが登録されていません"
+        onRowClick={setSelected}
       />
-
-      {selected && (
-        <Dialog open={!!selected} onOpenChange={(open) => { if (!open) setSelected(null) }}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>{selected.expression}</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <p className="text-sm text-muted-foreground whitespace-pre-line">{selected.meaning}</p>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-2">会話</p>
-                <div className="space-y-2">
-                  {selected.conversation.split("\n").filter(Boolean).map((line, i) => {
-                    const isA = line.startsWith("A:")
-                    return (
-                      <div
-                        key={i}
-                        className={`rounded-lg px-3 py-2 text-sm ${
-                          isA
-                            ? "bg-[color:var(--color-grammar)]/10 text-[color:var(--color-grammar)]"
-                            : "bg-[color:var(--color-phrase)]/10 text-[color:var(--color-phrase)]"
-                        }`}
-                      >
-                        {line}
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-              <div className="flex items-center gap-4 pt-2 border-t">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground">使用頻度</span>
-                  <StarRating value={selected.frequency} />
-                </div>
-                <span className="text-xs text-muted-foreground">
-                  練習回数: {selected.play_count} / 10
-                </span>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
+      {selected && <PhraseModal item={selected} onClose={() => setSelected(null)} />}
     </div>
   )
 }
+
+// ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function ListPage() {
   return (

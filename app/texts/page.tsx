@@ -460,7 +460,6 @@ function LessonList({
     <DataTable
       columns={lessonColumns}
       data={rows}
-      searchable={{ columnId: "topic", placeholder: "トピックで検索..." }}
       pageSize={20}
       emptyMessage="レッスンデータがありません"
     />
@@ -541,7 +540,7 @@ export default function TextsPage() {
         title="テキスト"
         description="レッスンごとの文法・フレーズ登録状況"
         actions={
-          <Button size="sm" onClick={() => setShowAddModal(true)}>
+          <Button onClick={() => setShowAddModal(true)}>
             <Plus className="mr-1.5 h-4 w-4" />
             テキスト追加
           </Button>
@@ -559,14 +558,36 @@ export default function TextsPage() {
           const s = levelStatusSummary(lvl)
           return (
           <TabsContent key={lvl} value={String(lvl)} className="space-y-3 mt-4">
-            <div className="flex items-center gap-3">
-              <span className="text-2xl font-bold">
-                {s.total}
-                <span className="text-base font-normal text-muted-foreground ml-1">件</span>
-              </span>
-              <Tag color="warning">練習中 {s.inProgress}</Tag>
-              <Tag color="success">習得済み {s.done}</Tag>
-              <Tag color="default">未登録 {s.unregistered}</Tag>
+            <div className="flex items-center gap-4 flex-wrap">
+              <div className="flex items-center gap-2">
+                <div className="h-1.5 w-28 bg-muted rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-primary rounded-full transition-all"
+                    style={{ width: `${s.total > 0 ? Math.round((s.done / s.total) * 100) : 0}%` }}
+                  />
+                </div>
+                <span className="text-sm font-medium text-foreground">{s.total}件</span>
+              </div>
+              <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                {s.done > 0 && (
+                  <span className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full" style={{ background: "var(--color-success)" }} />
+                    習得済み {s.done}
+                  </span>
+                )}
+                {s.inProgress > 0 && (
+                  <span className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full" style={{ background: "var(--color-warning)" }} />
+                    練習中 {s.inProgress}
+                  </span>
+                )}
+                {s.unregistered > 0 && (
+                  <span className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-muted-foreground/30" />
+                    未登録 {s.unregistered}
+                  </span>
+                )}
+              </div>
             </div>
             <LessonList
               lessons={byLevel(lvl)}
