@@ -60,8 +60,8 @@ export function SpeakingGrid({
   items: GrammarItem[]
   sessionCounts: Record<string, number>
 }) {
-  const todoItems = items.filter((g) => (sessionCounts[g.id] ?? 0) === 0)
-  const practicedItems = items.filter((g) => (sessionCounts[g.id] ?? 0) > 0)
+  const todoItems = items.filter((g) => (sessionCounts[g.id] ?? 0) < SESSIONS_REQUIRED)
+  const practicedItems = items.filter((g) => (sessionCounts[g.id] ?? 0) >= SESSIONS_REQUIRED)
 
   return (
     <Tabs defaultValue="todo">
@@ -71,7 +71,7 @@ export function SpeakingGrid({
           <Badge variant="secondary" className="ml-2 rounded-full">{todoItems.length}</Badge>
         </TabsTrigger>
         <TabsTrigger value="practiced">
-          練習済み
+          練習した
           <Badge variant="secondary" className="ml-2 rounded-full">{practicedItems.length}</Badge>
         </TabsTrigger>
       </TabsList>
@@ -90,7 +90,7 @@ export function SpeakingGrid({
 
       <TabsContent value="practiced" className="mt-4">
         {practicedItems.length === 0 ? (
-          <div className="text-center py-12 text-muted-foreground text-sm">まだ練習していません</div>
+          <div className="text-center py-12 text-muted-foreground text-sm">まだ3回完了した文法がありません</div>
         ) : (
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
             {practicedItems.map((g) => (

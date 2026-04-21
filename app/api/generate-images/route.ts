@@ -14,19 +14,6 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   console.log("[generate-images] リクエスト受信")
 
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  const admin = createAdminClient()
-  if (!user) {
-    console.error("[generate-images] 認証エラー: ユーザーなし")
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  }
-  console.log("[generate-images] ユーザー:", user.id)
-
-  const { items, force } = await request.json() as { items: { id: string; name: string }[]; force?: boolean }
-  if (!items?.length) return NextResponse.json({ results: [] })
-  console.log("[generate-images] 対象:", items.map(i => i.name).join(", "))
-
   const apiKey = process.env.GOOGLE_IMAGEN_API_KEY
   if (!apiKey) {
     console.error("[generate-images] GOOGLE_IMAGEN_API_KEY が未設定")
@@ -36,6 +23,20 @@ export async function POST(request: NextRequest) {
     console.error("[generate-images] SUPABASE_SERVICE_ROLE_KEY が未設定")
     return NextResponse.json({ error: "SUPABASE_SERVICE_ROLE_KEY not configured" }, { status: 500 })
   }
+
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    console.error("[generate-images] 認証エラー: ユーザーなし")
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+  console.log("[generate-images] ユーザー:", user.id)
+
+  const admin = createAdminClient()
+
+  const { items, force } = await request.json() as { items: { id: string; name: string }[]; force?: boolean }
+  if (!items?.length) return NextResponse.json({ results: [] })
+  console.log("[generate-images] 対象:", items.map(i => i.name).join(", "))
   console.log("[generate-images] APIキー確認: OK")
 
   const results = []
