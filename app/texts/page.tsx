@@ -25,9 +25,9 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  toast,
 } from "@takaki/go-design-system";
 import type { ColumnDef } from "@tanstack/react-table";
-import { toast } from "sonner";
 import {
   saveGrammar,
   saveExpressions,
