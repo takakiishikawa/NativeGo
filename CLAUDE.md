@@ -24,7 +24,7 @@ npm run lint      # ESLint
 1. **`@takaki/go-design-system` を最優先** — UIコンポーネントだけでなくレイアウト・ページテンプレート・トークン・ユーティリティ・Hooks すべて DS から取る（詳細は次セクション）
 2. **Server Components優先** — `'use client'` は必要箇所のみ
 3. **型安全** — `any` 型は使用しない
-4. **AI SDK** — `@anthropic-ai/sdk` のみ使用（openai等は禁止）
+4. **AI SDK** — テキスト生成は `@anthropic-ai/sdk`、音声文字起こし(STT)は `openai` の Whisper を使用。`ai` / `@ai-sdk/*` は使わない
 5. **MetaGo管理下** — コード品質・依存更新PRはMetaGoが自動作成
 
 ## go-design-system の使い方
@@ -58,7 +58,8 @@ import "@takaki/go-design-system/globals.css"
 | Layer 2 (全go共通) | `@supabase/*`, zod, date-fns, react-hook-form, `@vercel/analytics` |
 | Layer 3 (機能) | `@dnd-kit/*`, react-dropzone 等（機能に応じて） |
 | Layer 4 (固有) | このプロダクト専用ライブラリのみ |
-| 禁止 | openai, ai, `@ai-sdk/*` |
+| AI 用途 | テキスト生成: `@anthropic-ai/sdk` / 音声文字起こし(STT): `openai` (Whisper) |
+| 禁止 | `ai`, `@ai-sdk/*` |
 
 ## MetaGo連携
 MetaGoがこのリポジトリを中央管理しています。
